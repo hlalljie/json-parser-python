@@ -22,6 +22,7 @@ def get_char():
     return token
 
 def whitespace():
+    """ Gets new whitespace, tracking characters and lines until there is no more whitespace """
     global line
     global character
     if token == " ":
@@ -51,6 +52,7 @@ def string_hex():
         if not get_char():
             return False
     return True
+
 def string_backslash():
     if not get_char():
         return False
@@ -77,7 +79,7 @@ def string_char():
         return False
     return string_char()
 
-def string():
+def string() -> bool:
     # enter on quote so no need to check
     get_char()
 
@@ -134,7 +136,65 @@ def number():
 
     return True
 
+# TODO
+def object():
+    return True
 
+# TODO
+def array():
+    return True
+
+def true_value() -> bool:
+    get_char()
+    for c in "rue":
+        if c != token:
+            return False
+        get_char()
+    return True
+
+
+def false_value() -> bool:
+    get_char()
+    for c in "alse":
+        if c != token:
+            return False
+        get_char()
+    return True
+
+def null_value() -> bool:
+    get_char()
+    for c in "ull":
+        if c != token:
+            return False
+        get_char()
+    return True
+def value() -> bool:
+    whitespace()
+    if token == '"':
+        if not string():
+            return False
+    elif token == '-' or token.isdigit():
+        if not number():
+            return False
+    elif token == '{':
+        if not object():
+            return False
+    elif token == '[':
+        if not array():
+            return False
+    elif token == 't':
+        if not true_value():
+            return False
+    elif token == 'f':
+        if not false_value():
+            return False
+    elif token == 'n':
+        if not null_value():
+            return False
+    else:
+        return False
+    whitespace()
+    return True
 def validate_json(filename: str) -> bool:
     """ Function checks if a json file is valid """
     return True

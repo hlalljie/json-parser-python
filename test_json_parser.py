@@ -1,7 +1,7 @@
 # test_json_parser.py
 import pytest
 
-from json_parser import open_file, close_file, string, number
+from json_parser import open_file, close_file, string, number, value
 
 TEST_DATA_PATH = "./test_data/"
 
@@ -114,7 +114,57 @@ def test_number():
     assert number(), "number followed by a comma is valid as validation for characters after number is covered elsewhere"
     close_file()
 
+def test_value():
+    folder = "value/"
+    path = TEST_DATA_PATH + folder
 
+    open_file(path + "valid.json")
+    assert value(), "true is valid value"
+    close_file()
+
+    open_file(path + "valid.json")
+    assert value(), "false is valid value"
+    close_file()
+
+    open_file(path + "valid.json")
+    assert value(), "null is valid value"
+    close_file()
+
+    open_file(TEST_DATA_PATH + "number/valid.json")
+    assert value(), "number is valid value"
+    close_file()
+
+    open_file(TEST_DATA_PATH + "string/valid.json")
+    assert value(), "string is valid value"
+    close_file()
+
+    open_file(path + "valid4.json")
+    assert value(), "whitespace with value is a valid value"
+    close_file()
+
+    open_file(path + "valid5.json")
+    assert value(), "object is valid value"
+    close_file()
+
+    open_file(path + "valid6.json")
+    assert value(), "array is valid value"
+    close_file()
+
+    open_file(path + "invalid.json")
+    assert not value(), "word is not a valid value"
+    close_file()
+
+    open_file(path + "invalid2.json")
+    assert not value(), "tru is not a valid value"
+    close_file()
+
+    open_file(path + "invalid3.json")
+    assert not value(), "flase is not a valid value"
+    close_file()
+
+    open_file(path + "invalid4.json")
+    assert not value(), "empty is not a valid value"
+    close_file()
 
     
 

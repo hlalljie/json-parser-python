@@ -1,11 +1,12 @@
 # test_json_parser.py
 import pytest
 
-from json_parser import open_file, close_file, string
+from json_parser import open_file, close_file, string, number
 
 TEST_DATA_PATH = "./test_data/"
 
 def test_string():
+    
     folder = "string/"
     path = TEST_DATA_PATH + folder
 
@@ -44,8 +45,78 @@ def test_string():
     open_file(path + "invalid4.json")
     assert not string(), "backslash u with less than 4 hex is not valid"
     close_file()
-    
+  
+def test_number():
+    folder = "number/"
+    path = TEST_DATA_PATH + folder
 
+    open_file(path + "valid.json")
+    assert number(), "regular number is valid"
+    close_file()
+
+    open_file(path + "valid2.json")
+    assert number(), "standard negative number is valid"
+    close_file()
+
+    open_file(path + "valid3.json")
+    assert number(), "standard decimal is valid"
+    close_file()
+
+    open_file(path + "valid4.json")
+    assert number(), "0 start decimal is valid"
+    close_file()
+
+    open_file(path + "valid5.json")
+    assert number(), "negative decimal is valid"
+    close_file()
+
+    open_file(path + "valid6.json")
+    assert number(), "standard exponent with no signs or decimals is valid"
+    close_file()
+
+    open_file(path + "valid7.json")
+    assert number(), "0.0e-1 is a valid zero negative decimal exponent"
+    close_file()
+
+    open_file(path + "invalid.json")
+    assert not number(), "lone minus sign is not valid"
+    close_file()
+
+    open_file(path + "invalid2.json")
+    assert not number(), "lone period is not valid"
+    close_file()
+
+    open_file(path + "invalid2.json")
+    assert not number(), "lone period is not valid"
+    close_file()
+
+    open_file(path + "invalid3.json")
+    assert not number(), "0 followed by digit is not valid"
+    close_file()
+
+    open_file(path + "invalid4.json")
+    assert not number(), "decimal with no trailing digits is invalid"
+    close_file()
+
+    open_file(path + "invalid5.json")
+    assert not number(), "decimal with no leading digits is invalid"
+    close_file()
+
+    open_file(path + "invalid6.json")
+    assert not number(), "exponent by itself is not valid"
+    close_file()
+
+    open_file(path + "invalid7.json")
+    assert not number(), "exponent sign with no trailing decimals is invalid"
+    close_file()
+
+    open_file(path + "valid8.json")
+    assert number(), "number followed by a comma is valid as validation for characters after number is covered elsewhere"
+    close_file()
+
+
+
+    
 
 # def test_step_1() -> None:
 #     """ Tests step 1 of validating json checking that no output

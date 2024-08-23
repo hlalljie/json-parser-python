@@ -3,6 +3,8 @@
 
 file = None
 token = ""
+line = 1
+character = 1
 
 def open_file(filename: str):
     global file
@@ -14,8 +16,30 @@ def close_file():
 
 def get_char():
     global token
+    global character
     token = file.read(1)
+    character += 1
     return token
+
+def whitespace():
+    global line
+    global character
+    if token == " ":
+        get_char()
+        whitespace()
+    if token == "\t":
+        get_char()
+        character += 3
+        whitespace()
+    elif token == "\r":
+        get_char()
+        character = 1
+        whitespace()
+    elif token == "\n":
+        get_char()
+        line += 1
+        character = 1
+        whitespace()
 
 def string_hex():
     if not get_char():
@@ -63,6 +87,53 @@ def string():
     # string_char exits on endquote so no need to check
     get_char()
     return True
+
+def digit() -> None:
+    """ Keeps looping until a non digit """
+    get_char()
+    if token.isdigit():
+        digit()
+
+def decimal() -> bool:
+    get_char()
+    if not token or not token.isdigit():
+        return False
+    digit()
+    return True
+
+def exponent():
+    get_char()
+    if token == '-' or token == '+':
+        get_char()
+    if token.isdigit():
+        digit()
+        return True
+    return False
+
+def number():
+    """ Parses a number moving through it while also checking the validity note 
+    that note that some validity is checked by value function and other higher functions"""
+    if token == '-':
+        get_char()
+
+    if token == '0':
+        get_char()
+        if token.isdigit():
+            return False
+    elif token.isdigit():
+        digit()
+    else:
+        return False
+
+    if token == ".":
+        if not decimal():
+            return False
+
+    if token == "e" or token == "E":
+        return exponent()
+
+    return True
+
 
 def validate_json(filename: str) -> bool:
     """ Function checks if a json file is valid """

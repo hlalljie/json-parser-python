@@ -241,6 +241,7 @@ def json_object() -> bool:
     get_char()
     whitespace()
     if token == '}':
+        get_char()
         return True
     if not key_value_list():
         print("not key_value_list")
@@ -264,6 +265,12 @@ def validate_json(filename: str) -> bool:
             return False
         
     else:
+        return False
+    
+    whitespace()
+
+    if token:
+        print("content after close: ", token)
         return False
 
     close_file()

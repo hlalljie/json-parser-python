@@ -350,3 +350,123 @@ def test_step4() -> None:
     filename = path + "invalid.json"
     assert not validate_json(filename), "single quotes for string delimiter is not valid"
 
+def test_official() -> None:
+    """ Official Tests from json.org"""
+    folder = "official_tests/"
+    path = TEST_DATA_PATH + folder
+
+    filename = path + "fail1.json"
+    assert not validate_json(filename), "A JSON payload should be an object or array, not a string."
+
+    filename = path + "fail2.json"
+    assert not validate_json(filename), "Unclosed array is not valid"
+
+    filename = path + "fail3.json"
+    assert not validate_json(filename), "unquoted key is not valid"
+
+    filename = path + "fail4.json"
+    assert not validate_json(filename), "Extra quote after value in array is not valid"
+    
+    filename = path + "fail5.json"
+    assert not validate_json(filename), "double extra comma after value in array is not valid"
+    
+    filename = path + "fail6.json"
+    assert not validate_json(filename), "missing value before array is not valid"
+    
+    filename = path + "fail7.json"
+    assert not validate_json(filename), "comma after closing array is not valid"
+
+    filename = path + "fail8.json"
+    assert not validate_json(filename), "extra closing bracket is not valid"
+
+    filename = path + "fail9.json"
+    assert not validate_json(filename), "comma after bool value with following key value pair is valid"
+
+    filename = path + "fail10.json"
+    assert not validate_json(filename), "quoted value after close is not valid"
+
+    filename = path + "fail11.json"
+    assert not validate_json(filename), "expression as value is not valid"
+
+
+    filename = path + "fail12.json"
+    assert not validate_json(filename), "function as value is not valid"
+
+    filename = path + "fail13.json"
+    assert not validate_json(filename), "number with leading zero is not valid"
+
+    filename = path + "fail14.json"
+    assert not validate_json(filename), "hex number value is not valid"
+
+    filename = path + "fail15.json"
+    assert not validate_json(filename), "backslash x in string is not valid"
+    
+    filename = path + "fail16.json"
+    assert not validate_json(filename), "backslash naked value is not valid"
+
+    filename = path + "fail17.json"
+    assert not validate_json(filename), "backslash 0 is not valid"
+
+    # Haven't found any backup documentation to implement
+    # filename = path + "fail18.json"
+    # assert not validate_json(filename), "array depth of 20 not valid"
+
+    filename = path + "fail19.json"
+    assert not validate_json(filename), 'missing ":" in key value pair is not valid'
+
+    filename = path + "fail20.json"
+    assert not validate_json(filename), "double colon is not valid"
+
+    filename = path + "fail21.json"
+    assert not validate_json(filename), "comma instead of colon not valid"
+
+    filename = path + "fail22.json"
+    assert not validate_json(filename), "colon instead of comma not valid"
+
+    filename = path + "fail23.json"
+    assert not validate_json(filename), "truth is not valid value"
+    
+    filename = path + "fail24.json"
+    assert not validate_json(filename), "single quote for array is not valid"
+
+    # TODO
+    # filename = path + "fail25.json"
+    # assert not validate_json(filename), "tab character in string is not valid"
+
+    filename = path + "fail26.json"
+    assert not validate_json(filename), "backslash tab character in string is not valid"
+
+    # TODO
+    # filename = path + "fail27.json"
+    # assert not validate_json(filename), "line break character in string is not valid"
+    
+    filename = path + "fail28.json"
+    assert not validate_json(filename), "backslash linebreak in string is not valid"
+
+
+    filename = path + "fail29.json"
+    assert not validate_json(filename), "number with empty exponent value is not valid"
+
+    filename = path + "fail30.json"
+    assert not validate_json(filename), "number with empty positive exponent is not valid"
+
+    filename = path + "fail31.json"
+    assert not validate_json(filename), "number with positive and negative exponent is not valid"
+    
+    filename = path + "fail32.json"
+    assert not validate_json(filename), "comma instead of closing brace is not valid"
+
+
+    filename = path + "fail33.json"
+    assert not validate_json(filename), "mismatched bracket with brace is not valid"
+
+    # TODO
+    # filename = path + "pass1.json"
+    # assert validate_json(filename), "complex json is valid (pass1)"
+
+
+    filename = path + "pass2.json"
+    assert validate_json(filename), "heavily nested array is valid"
+
+    filename = path + "pass3.json"
+    assert validate_json(filename), "standard nested json is valid"

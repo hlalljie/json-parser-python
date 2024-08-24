@@ -1,12 +1,12 @@
 # test_json_parser.py
 import pytest
 
-from json_parser import open_file, close_file, string, number, value
+from json_parser import open_file, close_file, string, number, value, array, json_object, validate_json
 
 TEST_DATA_PATH = "./test_data/"
 
 def test_string():
-    
+
     folder = "string/"
     path = TEST_DATA_PATH + folder
 
@@ -150,6 +150,10 @@ def test_value():
     assert value(), "array is valid value"
     close_file()
 
+    open_file(path + "valid7.json")
+    assert value(), "value followed by non value is valid as the non value is checked later"
+    close_file()
+
     open_file(path + "invalid.json")
     assert not value(), "word is not a valid value"
     close_file()
@@ -166,24 +170,118 @@ def test_value():
     assert not value(), "empty is not a valid value"
     close_file()
 
-    
+def test_array():
+    folder = "array/"
+    path = TEST_DATA_PATH + folder
 
-# def test_step_1() -> None:
-#     """ Tests step 1 of validating json checking that no output
-#       is not valid and matched curly braces are valid"""
-#     folder = "step1/"
-#     path = TEST_DATA_PATH + folder
-#     filename = path + "invalid.json"
-#     assert not validate_json(filename), "empty file is not valid json"
-#     filename = path + "valid.json"
-#     assert validate_json(filename), "file with only matching parentheses is valid json"
-#     filename = path + "my_invalid.json"
-#     assert not validate_json(filename), "unclosed curly brace is not valid json"
-#     filename = path + "my_invalid2.json"
-#     assert not validate_json(filename), "closing curly brace without open brace is not valid json"
-#     filename = path + "my_invalid3.json"
-#     assert not validate_json(filename), "bracket closed before more recent open curly brace is invalid json"
-#     filename = path + "my_valid.json"
-#     assert validate_json(filename), "matching square brackets with whitespace is valid json"
+    open_file(path + "valid.json")
+    assert array(), "empty array is a valid array"
+    close_file()
+
+    open_file(path + "valid2.json")
+    assert array(), "array of 4 numbers with no spaces is a valid array"
+    close_file()
+
+    open_file(path + "valid3.json")
+    assert array(), "single value is a valid array"
+    close_file()
+
+    open_file(path + "valid4.json")
+    assert array(), "empty array full of whitespace is a valid array"
+    close_file()
+
+    open_file(path + "valid5.json")
+    assert array(), "array in an array is a valid array"
+    close_file()
+
+    open_file(path + "invalid.json")
+    assert not array(), "open bracket with values is not a valid array"
+    close_file()
+
+    open_file(path + "invalid2.json")
+    assert not array(), "mismatched brackets do not make a valid array"
+    close_file()
+
+    open_file(path + "invalid3.json")
+    assert not array(), "two commas make a non valid array"
+    close_file()
+
+    open_file(path + "invalid4.json")
+    assert not array(), "two values next to each other make a non valid array"
+    close_file()
+
+def test_object():
+    folder = "object/"
+    path = TEST_DATA_PATH + folder
+
+    open_file(path + "valid.json")
+    assert json_object(), "empty object is a valid array"
+    close_file()
+
+    open_file(path + "valid2.json")
+    assert json_object(), "standard object with one key value pair is valid"
+    close_file()
+
+    open_file(path + "valid3.json")
+    assert json_object(), "standard object with many spaces is valid"
+    close_file()
+
+    open_file(path + "valid4.json")
+    assert json_object(), "Nested object with many types is valid"
+    close_file()
+
+    open_file(path + "valid5.json")
+    assert json_object(), "object with empty string key and empty list value is valid"
+    close_file()
+
+    open_file(path + "invalid.json")
+    assert not json_object(), "open curly with no closing curly is not valid"
+    close_file()
+
+    open_file(path + "invalid2.json")
+    assert not json_object(), 'key value pair followed by comma and no other pairs is not value'
+    close_file()
     
+    open_file(path + "invalid3.json")
+    assert not json_object(), 'key value pair with no ":" is not valid'
+    close_file()
+
+    open_file(path + "invalid4.json")
+    assert not json_object(), 'multiple keys for key value pair not valid'
+    close_file()
+
+    open_file(path + "invalid5.json")
+    assert not json_object(), 'multiple values for key value pair not valid'
+    close_file()
+
+    open_file(path + "invalid6.json")
+    assert not json_object(), 'no key in key value pair is not valid'
+    close_file()
+
+    open_file(path + "invalid7.json")
+    assert not json_object(), 'number as key not valid'
+    close_file()
+
+
+def test_step_1() -> None:
+    """ Tests Step 1"""
     
+    folder = "step1/"
+    path = TEST_DATA_PATH + folder
+    filename = path + "invalid.json"
+    assert not validate_json(filename), "empty file is not valid json"
+
+    filename = path + "valid.json"
+    assert validate_json(filename), "file with only matching curly braces is valid json"
+
+    filename = path + "my_invalid.json"
+    assert not validate_json(filename), "unclosed curly brace is not valid json"
+
+    filename = path + "my_invalid2.json"
+    assert not validate_json(filename), "closing curly brace without open brace is not valid json"
+
+    filename = path + "my_invalid3.json"
+    assert not validate_json(filename), "bracket closed before more recent open curly brace is invalid json"
+
+    filename = path + "my_valid.json"
+    assert validate_json(filename), "matching square brackets with whitespace is valid json"

@@ -136,14 +136,6 @@ def number():
 
     return True
 
-# TODO
-def object():
-    return True
-
-# TODO
-def array():
-    return True
-
 def true_value() -> bool:
     get_char()
     for c in "rue":
@@ -151,7 +143,6 @@ def true_value() -> bool:
             return False
         get_char()
     return True
-
 
 def false_value() -> bool:
     get_char()
@@ -177,7 +168,7 @@ def value() -> bool:
         if not number():
             return False
     elif token == '{':
-        if not object():
+        if not json_object():
             return False
     elif token == '[':
         if not array():
@@ -195,6 +186,84 @@ def value() -> bool:
         return False
     whitespace()
     return True
+
+def value_list() -> bool:
+    if not value():
+        return False
+    if token == ',':
+        get_char()
+        if not value_list():
+            return False
+    return True
+
+def array() -> bool:
+    get_char()
+    whitespace()
+    if token == "]":
+        get_char()
+        return True
+    elif not value_list():
+        return False
+    if token == "]":
+        get_char()
+        return True
+    return False
+
+def key_value_list() -> bool:
+    if token != '"':
+        print("no quote to denote string before key: ", token)
+        return False
+    if not string():
+        print("not string for key")
+        return False
+    whitespace()
+
+    if token != ':':
+        print('need ":" folowing key')
+        return False
+    get_char()
+    whitespace()
+
+    if not value():
+        print("not value in object")
+        return False
+
+    if token == ',':
+        get_char()
+        whitespace()
+        if not key_value_list():
+            print('not key_value_list after comma')
+            return False
+
+    return True
+
+def json_object() -> bool:
+    get_char()
+    whitespace()
+    if token == '}':
+        return True
+    if not key_value_list():
+        print("not key_value_list")
+        return False
+    if token == '}':
+        return True
+    return False
+
 def validate_json(filename: str) -> bool:
     """ Function checks if a json file is valid """
+    open_file(filename)
+
+    whitespace()
+    if token == '{':
+        if not json_object():
+            return False
+
+    elif token == '[':
+        if not array():
+            return False
+        
+    else:
+        return False
+
+    close_file()
     return True

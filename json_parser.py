@@ -246,6 +246,7 @@ def json_object() -> bool:
         print("not key_value_list")
         return False
     if token == '}':
+        get_char()
         return True
     return False
 

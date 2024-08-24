@@ -45,6 +45,10 @@ def test_string():
     open_file(path + "invalid4.json")
     assert not string(), "backslash u with less than 4 hex is not valid"
     close_file()
+
+    open_file(path + "invalid5.json")
+    assert not string(), "string with single quotes is invalid"
+    close_file()
   
 def test_number():
     folder = "number/"
@@ -170,6 +174,10 @@ def test_value():
     assert not value(), "empty is not a valid value"
     close_file()
 
+    open_file(path + "invalid4.json")
+    assert not value(), "string with single quotes is not a valid value"
+    close_file()
+
 def test_array():
     folder = "array/"
     path = TEST_DATA_PATH + folder
@@ -208,6 +216,10 @@ def test_array():
 
     open_file(path + "invalid4.json")
     assert not array(), "two values next to each other make a non valid array"
+    close_file()
+
+    open_file(path + "invalid5.json")
+    assert not array(), "array with single quote delimited string is not a valid array"
     close_file()
 
 def test_object():
@@ -262,12 +274,21 @@ def test_object():
     assert not json_object(), 'number as key not valid'
     close_file()
 
+    open_file(path + "invalid8.json")
+    assert not json_object(), 'single quote string in array as value is not valid'
+    close_file()
+
+    open_file(path + "invalid9.json")
+    assert not json_object(), 'single quote string in nested array as value is not valid'
+    close_file()
+
 
 def test_step_1() -> None:
     """ Tests Step 1"""
     
     folder = "step1/"
     path = TEST_DATA_PATH + folder
+
     filename = path + "invalid.json"
     assert not validate_json(filename), "empty file is not valid json"
 
@@ -285,3 +306,47 @@ def test_step_1() -> None:
 
     filename = path + "my_valid.json"
     assert validate_json(filename), "matching square brackets with whitespace is valid json"
+
+def test_step2() -> None:
+    """ Tests Step 2"""
+    
+    folder = "step2/"
+    path = TEST_DATA_PATH + folder
+
+    filename = path + "valid.json"
+    assert validate_json(filename), "object with one key value pair is valid"
+
+    filename = path + "valid2.json"
+    assert validate_json(filename), "object with two key value pairs is valid"
+
+    filename = path + "invalid.json"
+    assert not validate_json(filename), "object with one key value pair followed by comma is invalid"
+
+    filename = path + "invalid2.json"
+    assert not validate_json(filename), "object non-string key is not valid"
+
+def test_step3() -> None:
+    """ Tests Step 3"""
+    folder = "step3/"
+    path = TEST_DATA_PATH + folder
+
+    filename = path + "valid.json"
+    assert validate_json(filename), "object with bool, null, number, and string values is valid"
+
+    filename = path + "invalid.json"
+    assert not validate_json(filename), "object with False as a value is not valid"
+
+def test_step4() -> None:
+    """ Tests Step 4"""
+    folder = "step4/"
+    path = TEST_DATA_PATH + folder
+
+    filename = path + "valid.json"
+    assert validate_json(filename), "object with string, number, array, and object values is valid"
+
+    filename = path + "valid2.json"
+    assert validate_json(filename), "object with nested object and array is valid"
+
+    filename = path + "invalid.json"
+    assert not validate_json(filename), "single quotes for string delimiter is not valid"
+

@@ -1,40 +1,42 @@
 # test_json_parser.py
 import pytest
 
-from json_parser import open_file, close_file, string, number, value, array, json_object, validate_json
+from json_parser import JsonValidator
 
 TEST_DATA_PATH = "./test_data/"
 
 class TestJSONComponents:
     @pytest.fixture
-    def json_file(self, request):
+    def setup_validator(self, request):
         filename = request.param
-        open_file(filename)
-        yield filename
-        close_file()
+        validator = JsonValidator()
+        validator.open_file(filename)
+        yield validator
+        validator.close_file()
 
     class TestString:
-        @pytest.mark.parametrize("json_file,message", [
+        @pytest.mark.parametrize("setup_validator, message", [
             (f"{TEST_DATA_PATH}string/valid.json", "regular string is valid"),
             (f"{TEST_DATA_PATH}string/valid2.json", "string with double backslash is a valid string"),
             (f"{TEST_DATA_PATH}string/valid3.json", "string with backslash u followed by 4 hex is valid"),
             (f"{TEST_DATA_PATH}string/valid4.json", "empty string is valid"),
-        ], indirect=["json_file"])
-        def test_valid_strings(self, json_file, message):
-            assert string(), message
+        ], indirect=["setup_validator"])
+        def test_valid_strings(self, setup_validator, message):
+            assert setup_validator.string(), message
 
-        @pytest.mark.parametrize("json_file,message", [
+        @pytest.mark.parametrize("setup_validator,message", [
             (f"{TEST_DATA_PATH}string/invalid.json", "no closing quote is invalid"),
             (f"{TEST_DATA_PATH}string/invalid2.json", "string with only backslash is invalid"),
             (f"{TEST_DATA_PATH}string/invalid3.json", "backslash followed by number is not valid"),
             (f"{TEST_DATA_PATH}string/invalid4.json", "backslash u with less than 4 hex is not valid"),
             (f"{TEST_DATA_PATH}string/invalid5.json", "string with single quotes is invalid"),
-        ], indirect=["json_file"])
-        def test_invalid_strings(self, json_file, message):
-            assert not string(), message
+        ], indirect=["setup_validator"])
+        def test_invalid_strings(self, setup_validator, message):
+            validator = setup_validator
+            assert not validator.string(), message
             
     class TestNumber: 
-        @pytest.mark.parametrize("json_file,message", [
+        @pytest.mark.parametrize("setup_validator,message", [
             (f"{TEST_DATA_PATH}number/valid.json", "regular number is valid"),
             (f"{TEST_DATA_PATH}number/valid2.json", "standard negative number is valid"),
             (f"{TEST_DATA_PATH}number/valid3.json", "standard decimal is valid"),
@@ -43,11 +45,11 @@ class TestJSONComponents:
             (f"{TEST_DATA_PATH}number/valid6.json", "standard exponent with no signs or decimals is valid"),
             (f"{TEST_DATA_PATH}number/valid7.json", "0.0e-1 is a valid zero negative decimal exponent"),
             (f"{TEST_DATA_PATH}number/valid8.json", "number followed by a comma is valid as validation for characters after number is covered elsewhere"),
-        ], indirect=["json_file"])
-        def test_valid_numbers(self, json_file, message):
-            assert number(), message
+        ], indirect=["setup_validator"])
+        def test_valid_numbers(self, setup_validator, message):
+            assert setup_validator.number(), message
 
-        @pytest.mark.parametrize("json_file,message", [
+        @pytest.mark.parametrize("setup_validator,message", [
             (f"{TEST_DATA_PATH}number/invalid.json", "lone minus sign is not valid"),
             (f"{TEST_DATA_PATH}number/invalid2.json", "lone period is not valid"),
             (f"{TEST_DATA_PATH}number/invalid3.json", "0 followed by digit is not valid"),
@@ -55,12 +57,13 @@ class TestJSONComponents:
             (f"{TEST_DATA_PATH}number/invalid5.json", "decimal with no leading digits is invalid"),
             (f"{TEST_DATA_PATH}number/invalid6.json", "exponent by itself is not valid"),
             (f"{TEST_DATA_PATH}number/invalid7.json", "exponent sign with no trailing decimals is invalid"),
-        ], indirect=["json_file"])
-        def test_invalid_numbers(self, json_file, message):
-            assert not number(), message
+        ], indirect=["setup_validator"])
+        def test_invalid_numbers(self, setup_validator, message):
+            validator = setup_validator
+            assert not validator.number(), message
 
     class TestValue:
-        @pytest.mark.parametrize("json_file,message", [
+        @pytest.mark.parametrize("setup_validator,message", [
             (f"{TEST_DATA_PATH}value/valid.json", "true is valid value"),
             (f"{TEST_DATA_PATH}value/valid.json", "false is valid value"),
             (f"{TEST_DATA_PATH}value/valid.json", "null is valid value"),
@@ -70,53 +73,53 @@ class TestJSONComponents:
             (f"{TEST_DATA_PATH}value/valid5.json", "object is valid value"),
             (f"{TEST_DATA_PATH}value/valid6.json", "array is valid value"),
             (f"{TEST_DATA_PATH}value/valid7.json", "value followed by non value is valid as the non value is checked later"),
-        ], indirect=["json_file"])
-        def test_valid_values(self, json_file, message):
-            assert value(), message
+        ], indirect=["setup_validator"])
+        def test_valid_values(self, setup_validator, message):
+            assert setup_validator.value(), message
 
-        @pytest.mark.parametrize("json_file,message", [
+        @pytest.mark.parametrize("setup_validator,message", [
             (f"{TEST_DATA_PATH}value/invalid.json", "word is not a valid value"),
             (f"{TEST_DATA_PATH}value/invalid2.json", "tru is not a valid value"),
             (f"{TEST_DATA_PATH}value/invalid3.json", "flase is not a valid value"),
             (f"{TEST_DATA_PATH}value/invalid4.json", "empty is not a valid value"),
             (f"{TEST_DATA_PATH}value/invalid4.json", "string with single quotes is not a valid value"),
-        ], indirect=["json_file"])
-        def test_invalid_values(self, json_file, message):
-            assert not value(), message
+        ], indirect=["setup_validator"])
+        def test_invalid_values(self, setup_validator, message):
+            assert not setup_validator.value(), message
 
     class TestArray:
-        @pytest.mark.parametrize("json_file,message", [
+        @pytest.mark.parametrize("setup_validator,message", [
             (f"{TEST_DATA_PATH}array/valid.json", "empty array is a valid array"),
             (f"{TEST_DATA_PATH}array/valid2.json", "array of 4 numbers with no spaces is a valid array"),
             (f"{TEST_DATA_PATH}array/valid3.json", "single value is a valid array"),
             (f"{TEST_DATA_PATH}array/valid4.json", "empty array full of whitespace is a valid array"),
             (f"{TEST_DATA_PATH}array/valid5.json", "array in an array is a valid array"),
-        ], indirect=["json_file"])
-        def test_valid_arrays(self, json_file, message):
-            assert array(), message
+        ], indirect=["setup_validator"])
+        def test_valid_arrays(self, setup_validator, message):
+            assert setup_validator.array(), message
 
-        @pytest.mark.parametrize("json_file,message", [
+        @pytest.mark.parametrize("setup_validator,message", [
             (f"{TEST_DATA_PATH}array/invalid.json", "open bracket with values is not a valid array"),
             (f"{TEST_DATA_PATH}array/invalid2.json", "mismatched brackets do not make a valid array"),
             (f"{TEST_DATA_PATH}array/invalid3.json", "two commas make a non valid array"),
             (f"{TEST_DATA_PATH}array/invalid4.json", "two values next to each other make a non valid array"),
             (f"{TEST_DATA_PATH}array/invalid5.json", "array with single quote delimited string is not a valid array"),
-        ], indirect=["json_file"])
-        def test_invalid_arrays(self, json_file, message):
-            assert not array(), message
+        ], indirect=["setup_validator"])
+        def test_invalid_arrays(self, setup_validator, message):
+            assert not setup_validator.array(), message
 
     class TestObject:
-        @pytest.mark.parametrize("json_file,message", [
+        @pytest.mark.parametrize("setup_validator,message", [
             (f"{TEST_DATA_PATH}object/valid.json", "empty object is a valid object"),
             (f"{TEST_DATA_PATH}object/valid2.json", "standard object with one key value pair is valid"),
             (f"{TEST_DATA_PATH}object/valid3.json", "standard object with many spaces is valid"),
             (f"{TEST_DATA_PATH}object/valid4.json", "Nested object with many types is valid"),
             (f"{TEST_DATA_PATH}object/valid5.json", "object with empty string key and empty list value is valid"),
-        ], indirect=["json_file"])
-        def test_valid_objects(self, json_file, message):
-            assert json_object(), message
+        ], indirect=["setup_validator"])
+        def test_valid_objects(self, setup_validator, message):
+            assert setup_validator.json_object(), message
 
-        @pytest.mark.parametrize("json_file,message", [
+        @pytest.mark.parametrize("setup_validator,message", [
             (f"{TEST_DATA_PATH}object/invalid.json", "open curly with no closing curly is not valid"),
             (f"{TEST_DATA_PATH}object/invalid2.json", "key value pair followed by comma and no other pairs is not valid"),
             (f"{TEST_DATA_PATH}object/invalid3.json", 'key value pair with no ":" is not valid'),
@@ -126,11 +129,17 @@ class TestJSONComponents:
             (f"{TEST_DATA_PATH}object/invalid7.json", "number as key not valid"),
             (f"{TEST_DATA_PATH}object/invalid8.json", "single quote string in array as value is not valid"),
             (f"{TEST_DATA_PATH}object/invalid9.json", "single quote string in nested array as value is not valid"),
-        ], indirect=["json_file"])
-        def test_invalid_objects(self, json_file, message):
-            assert not json_object(), message
+        ], indirect=["setup_validator"])
+        def test_invalid_objects(self, setup_validator, message):
+            assert not setup_validator.json_object(), message
 
 class TestJSONChallenges:
+
+    @pytest.fixture
+    def setup_validator(self, request):
+        validator = JsonValidator()
+        return validator
+
     @pytest.mark.parametrize("filename,expected,message", [
         ("step1/invalid.json", False, "empty file is not valid json"),
         ("step1/valid.json", True, "file with only matching curly braces is valid json"),
@@ -138,35 +147,45 @@ class TestJSONChallenges:
         ("step1/my_invalid2.json", False, "closing curly brace without open brace is not valid json"),
         ("step1/my_invalid3.json", False, "bracket closed before more recent open curly brace is invalid json"),
         ("step1/my_valid.json", True, "matching square brackets with whitespace is valid json"),
-    ])
-    def test_step1(self, filename, expected, message):
-        assert validate_json(f"{TEST_DATA_PATH}{filename}") == expected, message
+        ]
+    )
+    def test_step1(self, setup_validator, filename, expected, message):
+        assert setup_validator.validate_json(f"{TEST_DATA_PATH}{filename}") == expected, message
 
     @pytest.mark.parametrize("filename,expected,message", [
         ("step2/valid.json", True, "object with one key value pair is valid"),
         ("step2/valid2.json", True, "object with two key value pairs is valid"),
         ("step2/invalid.json", False, "object with one key value pair followed by comma is invalid"),
-        ("step2/invalid2.json", False, "object non-string key is not valid"),
-    ])
-    def test_step2(self, filename, expected, message):
-        assert validate_json(f"{TEST_DATA_PATH}{filename}") == expected, message
+        ("step2/invalid2.json", False, "object non-string key is not valid")
+        ]
+    )
+    def test_step2(self, setup_validator, filename, expected, message):
+        assert setup_validator.validate_json(f"{TEST_DATA_PATH}{filename}") == expected, message
 
     @pytest.mark.parametrize("filename,expected,message", [
         ("step3/valid.json", True, "object with bool, null, number, and string values is valid"),
-        ("step3/invalid.json", False, "object with False as a value is not valid"),
-    ])
-    def test_step3(self, filename, expected, message):
-        assert validate_json(f"{TEST_DATA_PATH}{filename}") == expected, message
+        ("step3/invalid.json", False, "object with False as a value is not valid")
+        ]
+    )
+    def test_step3(self, setup_validator, filename, expected, message):
+        assert setup_validator.validate_json(f"{TEST_DATA_PATH}{filename}") == expected, message
 
     @pytest.mark.parametrize("filename,expected,message", [
         ("step4/valid.json", True, "object with string, number, array, and object values is valid"),
         ("step4/valid2.json", True, "object with nested object and array is valid"),
-        ("step4/invalid.json", False, "single quotes for string delimiter is not valid"),
-    ])
-    def test_step4(self, filename, expected, message):
-        assert validate_json(f"{TEST_DATA_PATH}{filename}") == expected, message
+        ("step4/invalid.json", False, "single quotes for string delimiter is not valid")
+        ]
+    )
+    def test_step4(self, setup_validator, filename, expected, message):
+        assert setup_validator.validate_json(f"{TEST_DATA_PATH}{filename}") == expected, message
 
 class TestOfficialJSONTests:
+
+    @pytest.fixture
+    def setup_validator(self, request):
+        validator = JsonValidator()
+        return validator
+
     @pytest.mark.parametrize("filename,expected,message", [
         ("fail1.json", False, "A JSON payload should be an object or array, not a string."),
         ("fail2.json", False, "Unclosed array is not valid"),
@@ -201,8 +220,8 @@ class TestOfficialJSONTests:
         ("pass2.json", True, "heavily nested array is valid"),
         ("pass3.json", True, "standard nested json is valid"),
     ])
-    def test_official_json_tests(self, filename, expected, message):
-        assert validate_json(f"{TEST_DATA_PATH}official_tests/{filename}") == expected, message
+    def test_official_json_tests(self, setup_validator, filename, expected, message):
+        assert setup_validator.validate_json(f"{TEST_DATA_PATH}official_tests/{filename}") == expected, message
 
     # TODO: Implement these tests when ready
     @pytest.mark.skip(reason="No official documentation supporting this test")

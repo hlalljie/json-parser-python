@@ -16,15 +16,19 @@ class TestJSONComponents:
         validator.close_file()
 
     class TestString:
-        # TODO: Handle non-boolean return with try/except
-        # @pytest.mark.parametrize("setup_validator, message", [
-        #     (f"{TEST_DATA_PATH}string/valid.json", "regular string is valid"),
-        #     (f"{TEST_DATA_PATH}string/valid2.json", "string with double backslash is a valid string"),
-        #     (f"{TEST_DATA_PATH}string/valid3.json", "string with backslash u followed by 4 hex is valid"),
-        #     (f"{TEST_DATA_PATH}string/valid4.json", "empty string is valid"),
-        # ], indirect=["setup_validator"])
-        # def test_valid_strings(self, setup_validator, message):
-            # assert setup_validator.string(), message
+        @pytest.mark.parametrize("setup_validator, message", [
+            (f"{TEST_DATA_PATH}string/valid.json", "regular string is valid"),
+            (f"{TEST_DATA_PATH}string/valid2.json",
+                "string with double backslash is a valid string"),
+            (f"{TEST_DATA_PATH}string/valid3.json",
+                "string with backslash u followed by 4 hex is valid"),
+            (f"{TEST_DATA_PATH}string/valid4.json", "empty string is valid"),
+        ], indirect=["setup_validator"])
+        def test_valid_strings(self, setup_validator, message):
+            try: 
+                setup_validator._string()
+            except JSONValidatorError:
+                pytest.fail(message)
 
         @pytest.mark.parametrize("setup_validator,fail_message,error_spec",[
             (f"{TEST_DATA_PATH}string/invalid.json", "no closing quote is invalid",
@@ -33,7 +37,8 @@ class TestJSONComponents:
                 JSONValidatorError("", ErrorCode.STRING_EOF_ERROR, 1, 4)),
             (f"{TEST_DATA_PATH}string/invalid3.json", "backslash followed by number is not valid",
                 JSONValidatorError("", ErrorCode.STRING_ESCAPE_ERROR, 1, 3)),
-            (f"{TEST_DATA_PATH}string/invalid4.json", "backslash u with less than 4 hex is not valid",
+            (f"{TEST_DATA_PATH}string/invalid4.json", 
+                "backslash u with less than 4 hex is not valid",
                 JSONValidatorError("", ErrorCode.STRING_HEX_ERROR, 1, 13)),
             (f"{TEST_DATA_PATH}string/invalid5.json", "string with single quotes is invalid",
                 JSONValidatorError("", ErrorCode.STRING_EOF_ERROR, 1, 9)),
@@ -45,11 +50,14 @@ class TestJSONComponents:
                 pytest.fail(fail_message + " (was marked valid)")
             except JSONValidatorError as error_received:
                 assert error_received.error_code == error_spec.error_code, \
-                    f"Specified error {error_spec.error_code} does not match received error code {error_received.error_code}"
+                    f"Specified error {error_spec.error_code} \
+                        does not match received error code {error_received.error_code}"
                 assert error_received.line == error_spec.line, \
-                    f"Specified line {error_spec.line} does not match received line {error_received.line}"
+                    f"Specified line {error_spec.line} \
+                        does not match received line {error_received.line}"
                 assert error_received.column == error_spec.column, \
-                    f"Specified column {error_spec.column} does not match received column {error_received.column}"
+                    f"Specified column {error_spec.column} \
+                        does not match received column {error_received.column}"
                 
             
     # class TestNumber: 

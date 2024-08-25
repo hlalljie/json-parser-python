@@ -120,11 +120,8 @@ class JsonValidator:
             self._column = 1
             self._whitespace()
 
-    def _string_hex(self) -> bool:
+    def _string_hex(self):
         """ Checks if the 4 characters following backslash u are hex digits
-
-        Returns:
-            bool: True if the 4 characters following backslash u are hex digits
 
         Raises:
             JSONValidatorError: An exception with error message, error code, line number,
@@ -143,16 +140,12 @@ class JsonValidator:
             # check if end of file
             self._get_char(("end of file reached in string hex, must have 4 hex digits after \\u",
                 ErrorCode.STRING_HEX_ERROR))
-        return True
 
-    def _string_backslash(self) -> bool:
+    def _string_backslash(self):
         """ Validates escape characters.
 
         Checks if the next character is a valid escape character and
         validates the sequence if necessary
-
-        Returns:
-            bool: True if the following sequence is a valid escape sequence
 
         Raises:
             JSONValidatorError: An exception with error message, error code, line number,
@@ -173,15 +166,11 @@ class JsonValidator:
             self._token == 't' or
             (self._token == 'u' and self._string_hex())
         ):
-            return True
+            return
         self._raise_error("invalid escape character in string", ErrorCode.STRING_ESCAPE_ERROR)
-        return False
 
-    def _string_char(self) -> bool:
+    def _string_char(self):
         """ Recursively checks if the next character is a valid string character
-
-        Returns:
-            bool: True if the next sequence is a valid string sequence
 
         Raises:
             JSONValidatorError: An exception with error message, error code, line number,
@@ -194,16 +183,13 @@ class JsonValidator:
             self._string_backslash()
         # check for end of string
         elif self._token == '"':
-            return True
+            return
 
         # recursively checks next character
-        return self._string_char()
+        self._string_char()
 
-    def _string(self) -> bool:
+    def _string(self):
         """ Parses a string to check if it is valid
-
-        Returns:
-            bool: True if the string is valid
 
         Raises:
             JSONValidatorError: An exception with error message, error code, line number,
@@ -216,7 +202,6 @@ class JsonValidator:
         # _string_char exits on endquote so no need to check for endquote
         # value checks for eof so no check here
         self._get_char()
-        return True
 
     def _digit(self) -> None:
         """ Recursively loops until the next character is not a digit """

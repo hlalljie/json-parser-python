@@ -62,9 +62,9 @@ class JsonValidator:
             self._file = open(filename, "r", encoding="UTF-8")
         except FileNotFoundError as e:
             self._raise_error(str(e), ErrorCode.FILE_NOT_FOUND)
-        # set initial line and column
+        # set initial line to 1 and column to 0 so getting hte first char sets column index to 1
         self._line = 1
-        self._column = 1
+        self._column = 0
         # get first character
         self._get_char()
 
@@ -85,6 +85,8 @@ class JsonValidator:
             JSONValidatorError: An exception with error message, error code, line number,
             and column number
         """
+        # increment column before reading so errors are on correct column
+        self._column += 1
         try:
             self._token = self._file.read(1)
         # checks if there is a problem reading the next character
@@ -95,7 +97,6 @@ class JsonValidator:
         # if there is an error specified
         if not self._token and error_if_eof:
             self._raise_error(*error_if_eof)
-        self._column += 1
 
     def _whitespace(self):
         """ Recursively skips through whitespace """
@@ -176,7 +177,6 @@ class JsonValidator:
         self._raise_error("invalid escape character in string", ErrorCode.STRING_ESCAPE_ERROR)
         return False
 
-    # TODO: Move get_char to top and out of string when calling _string_char for consistency
     def _string_char(self) -> bool:
         """ Recursively checks if the next character is a valid string character
 
@@ -187,6 +187,8 @@ class JsonValidator:
             JSONValidatorError: An exception with error message, error code, line number,
             and column number
         """
+        self._get_char(("file ended in middle of string", ErrorCode.STRING_EOF_ERROR))
+
         # checks for escape characters
         if self._token == '\\':
             self._string_backslash()
@@ -194,7 +196,7 @@ class JsonValidator:
         elif self._token == '"':
             return True
 
-        self._get_char(("file ended in middle of string", ErrorCode.STRING_EOF_ERROR))
+        # recursively checks next character
         return self._string_char()
 
     def _string(self) -> bool:
@@ -207,14 +209,12 @@ class JsonValidator:
             JSONValidatorError: An exception with error message, error code, line number,
             and column number
         """
-        # gets character after quote
-        self._get_char(("file ended in middle of string", ErrorCode.STRING_EOF_ERROR))
 
         # recursively check if string is valid
         self._string_char()
 
-        # _string_char exits on endquote so no need to check
-        # value checks for end of file so no check here
+        # _string_char exits on endquote so no need to check for endquote
+        # value checks for eof so no check here
         self._get_char()
         return True
 

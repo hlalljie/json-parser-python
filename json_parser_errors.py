@@ -38,6 +38,11 @@ class ErrorCode(Enum):
     # Outside of JSON error
     INVALID_START_ERROR = 19
     EOF_CHARACTER_ERROR = 20
+
+    def __str__(self):
+        return f"{self.name}({self.value})"
+    def __repr__(self):
+        return self.__str__()
 class JSONValidatorError(Exception):
     """ Custom exception class providing and interface for JSON validation errors """
     def __init__(self, message: str, error_code: ErrorCode, line: int, column: int):
@@ -60,3 +65,11 @@ class JSONValidatorError(Exception):
         if not self.line and not self.column:
             return f"{self.error_code.name}: {self.message}"
         return f"{self.error_code.name}: {self.message} at line {self.line}, column {self.column}"
+    
+    def __repr__(self):
+        return self.__str__()
+    
+    def __eq__(self, other):
+        return (self.error_code == other.error_code and
+            self.line == other.line and 
+            self.column == other.column)

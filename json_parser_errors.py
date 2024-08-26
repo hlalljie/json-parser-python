@@ -35,9 +35,10 @@ class ErrorCode(Enum):
     OBJECT_KEY_ERROR = 16
     OBJECT_SEPARATOR_ERROR = 17
     OBJECT_VALUE_ERROR = 18
+    OBJECT_CLOSE_ERROR = 19
     # Outside of JSON error
-    INVALID_START_ERROR = 19
-    EOF_CHARACTER_ERROR = 20
+    INVALID_START_ERROR = 20
+    EOF_CHARACTER_ERROR = 21
 
     def __str__(self):
         return f"{self.name}({self.value})"

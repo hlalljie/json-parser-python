@@ -98,7 +98,7 @@ class JsonValidator:
         if not self._token and error_if_eof:
             self._raise_error(*error_if_eof)
 
-    def _whitespace(self):
+    def _whitespace(self) -> None:
         """ Recursively skips through whitespace """
         if self._token == " ":
             self._get_char()
@@ -120,7 +120,7 @@ class JsonValidator:
             self._column = 1
             self._whitespace()
 
-    def _string_hex(self):
+    def _string_hex(self) -> None:
         """ Checks if the 4 characters following backslash u are hex digits
 
         Raises:
@@ -141,7 +141,7 @@ class JsonValidator:
             self._get_char(("end of file reached in string hex, must have 4 hex digits after \\u",
                 ErrorCode.STRING_HEX_ERROR))
 
-    def _string_backslash(self):
+    def _string_backslash(self) -> None:
         """ Validates escape characters.
 
         Checks if the next character is a valid escape character and
@@ -169,7 +169,7 @@ class JsonValidator:
             return
         self._raise_error("invalid escape character in string", ErrorCode.STRING_ESCAPE_ERROR)
 
-    def _string_char(self):
+    def _string_char(self) -> None:
         """ Recursively checks if the next character is a valid string character
 
         Raises:
@@ -188,7 +188,7 @@ class JsonValidator:
         # recursively checks next character
         self._string_char()
 
-    def _string(self):
+    def _string(self) -> None:
         """ Parses a string to check if it is valid
 
         Raises:
@@ -210,28 +210,21 @@ class JsonValidator:
         if self._token.isdigit():
             self._digit()
 
-    def _decimal(self) -> bool:
+    def _decimal(self) -> None:
         """ Parses a decimal number after the decimal point
 
         Decimal number must have at least one digit after the decimal point
-
-        Returns:
-            bool: True if the decimal number is valid
 
         """
         self._get_char(("end of file reached in decimal", ErrorCode.NUMBER_EOF_ERROR))
         if not self._token.isdigit():
             self._raise_error("non digit in decimal", ErrorCode.NUMBER_DIGIT_ERROR)
         self._digit()
-        return True
 
-    def _exponent(self) -> bool:
+    def _exponent(self) -> None:
         """ Parses an exponent after e or E
 
         Exponent must have at least one digit after e or E
-
-        Returns:
-            bool: True if the exponent is valid
 
         Raises:
             JSONValidatorError: An exception with error message, error code, line number,
@@ -242,17 +235,14 @@ class JsonValidator:
             self._get_char(("end of file reached in exponent", ErrorCode.NUMBER_EXPONENT_ERROR))
         if self._token.isdigit():
             self._digit()
-            return True
-        return self._raise_error("invalid exponent", ErrorCode.NUMBER_EXPONENT_ERROR)
+            return
+        self._raise_error("invalid exponent", ErrorCode.NUMBER_EXPONENT_ERROR)
 
-    def _number(self) -> bool:
+    def _number(self) -> None:
         """ Parses a number to check if it is valid
 
         Checks all valid number sequences, does not check validity of
         exit character as that is checked by number
-
-        Returns:
-            bool: True if the number is valid
 
         Raises:
             JSONValidatorError: An exception with error message, error code, line number,
@@ -282,15 +272,10 @@ class JsonValidator:
         if self._token == "e" or self._token == "E":
             self._exponent()
 
-        return True
-
-    def _true_value(self) -> bool:
+    def _true_value(self) -> None:
         """ Checks if value starting with "t" is "true"
 
         true is the only valid value starting with t (strings start with a quote)
-
-        Returns:
-            bool: True if value starting with "t" is "true"
 
         Raises:
             JSONValidatorError: An exception with error message, error code, line number,
@@ -304,15 +289,11 @@ class JsonValidator:
                 self._raise_error("invalid character in true value",
                     ErrorCode.VALUE_CHARACTER_ERROR)
             self._get_char(("end of file reached in true value", ErrorCode.VALUE_EOF_ERROR))
-        return True
 
-    def _false_value(self) -> bool:
+    def _false_value(self) -> None:
         """ Checks if value starting with "f" is "false"
 
         false is the only valid value starting with f (strings start with a quote)
-
-        Returns:
-            bool: True if value starting with "f" is "false"
 
         Raises:
             JSONValidatorError: An exception with error message, error code, line number,
@@ -325,15 +306,11 @@ class JsonValidator:
                 self._raise_error("invalid character in false value",
                     ErrorCode.VALUE_CHARACTER_ERROR)
             self._get_char(("end of file reached in false value", ErrorCode.VALUE_EOF_ERROR))
-        return True
 
-    def _null_value(self) -> bool:
+    def _null_value(self) -> None:
         """ Checks if value starting with "n" is "null"
 
         null is the only valid value starting with n (strings start with a quote)
-
-        Returns:
-            bool: True if value starting with "n" is "null"
 
         Raises:
             JSONValidatorError: An exception with error message, error code, line number,
@@ -345,15 +322,12 @@ class JsonValidator:
                 self._raise_error("invalid character in null value",
                     ErrorCode.VALUE_CHARACTER_ERROR)
             self._get_char(("end of file reached in null value", ErrorCode.VALUE_EOF_ERROR))
-        return True
-    def _value(self) -> bool:
+    
+    def _value(self) -> None:
         """ Parses a value to check if it is valid
 
         Checks all valid value sequences including strings, numbers, bools, null,
         arrays, and objects
-
-        Returns:
-            bool: True if the value is valid
 
         Raises:
             JSONValidatorError: An exception with error message, error code, line number,
@@ -386,15 +360,11 @@ class JsonValidator:
             self._raise_error("invalid character in value", ErrorCode.VALUE_CHARACTER_ERROR)
 
         self._whitespace()
-        return True
 
-    def _value_list(self) -> bool:
+    def _value_list(self) -> None:
         """ Recursively parses the inner part of an array to check if it is valid
         
         Value lists consist of values separated by commas
-
-        Returns:
-            bool: True if the value list is valid
 
         Raises:
             JSONValidatorError: An exception with error message, error code, line number,
@@ -408,13 +378,9 @@ class JsonValidator:
             # eof after comma is not valid
             self._get_char(("end of file reached in array", ErrorCode.ARRAY_EOF_ERROR))
             self._value_list()
-        return True
 
-    def _array(self) -> bool:
+    def _array(self) -> None:
         """ Parses an array to check if it is valid
-
-        Returns:
-            bool: True if the array is valid
 
         Raises:
             JSONValidatorError: An exception with error message, error code, line number,
@@ -428,24 +394,20 @@ class JsonValidator:
         if self._token == "]":
             # can end file after ]
             self._get_char()
-            return True
+            return
         # non empty array must contain value(s)
         self._value_list()
         # close non empty array
         if self._token == "]":
             # can end file after ]
             self._get_char()
-            return True
+            return
         self._raise_error("invalid character in array", ErrorCode.ARRAY_CHARACTER_ERROR)
-        return False
 
-    def _key_value_list(self) -> bool:
+    def _key_value_list(self) -> None:
         """ Parses the inner part of an object to check if it is valid
 
         Key value lists consist of key value pairs separated by commas
-
-        Returns:
-            bool: True if the key value list is valid
 
         Raises:
             JSONValidatorError: An exception with error message, error code, line number,
@@ -473,15 +435,10 @@ class JsonValidator:
             self._whitespace()
             self._key_value_list()
 
-        return True
-
-    def _json_object(self) -> bool:
+    def _json_object(self) -> None:
         """ Parses an object to check if it is valid
 
         Object consists of key value pairs separated by commas
-
-        Returns:
-            bool: True if the object is valid
 
         Raises:
             JSONValidatorError: An exception with error message, error code, line number,
@@ -494,19 +451,18 @@ class JsonValidator:
         if self._token == '}':
             # can end file after }
             self._get_char()
-            return True
+            return
         # non empty object must contain key value(s)
         self._key_value_list()
         # close non empty object
         if self._token == '}':
             # can end file after }
             self._get_char()
-            return True
+            return
 
-        self._raise_error("invalid character in object", ErrorCode.OBJECT_KEY_ERROR)
-        return False
+        self._raise_error("no closing bracket in object", ErrorCode.OBJECT_CLOSE_ERROR)
 
-    def validate_json(self, filename: str) -> bool:
+    def validate_json(self, filename: str) -> None:
         """ Function checks if a json file is valid
         
         Opens file and checks if it is a valid json, returns True
@@ -514,9 +470,6 @@ class JsonValidator:
 
         Args:
             filename (str): name of json file
-
-        Returns:
-            bool: True if json is valid
 
         Raises:
             JSONValidatorError: An exception with error message, error code, line number,
@@ -546,4 +499,3 @@ class JsonValidator:
 
         # close file
         self.close_file()
-        return True

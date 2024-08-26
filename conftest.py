@@ -12,5 +12,5 @@ def pytest_addoption(parser):
     )
 
 @pytest.fixture
-def check_messages(request) -> bool:
+def check_messages(request: pytest.FixtureRequest) -> str:
     return request.config.getoption("--check-messages")

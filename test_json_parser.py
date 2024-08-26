@@ -1,72 +1,138 @@
-import pytest
+"""
+    test_json_parser.py
+    
+    This module contains unit tests for the json_parser.py module.
+    Included in this testing module are:
+        - TestJSONComponents - unit tests for individual JSON components
+        - TestJSONChallenges - unit tests for based on the 
+          codingchallenges.fyi/challenge-json-parser challenge
+        - TestOfficialJsonTests - unit tests for the official json tests from json.org
 
+    These tests are intended to be run with pytest.
+"""
+# Imports
 import warnings
-
+from typing import Generator, Callable
+from abc import ABC, abstractmethod
+import pytest
 from json_parser_errors import ErrorCode, JSONValidatorError
 from json_parser import JsonValidator
 
+# Globals
 TEST_DATA_PATH = "./test_data/"
 
 class TestJSONComponents:
+    """ Unit tests for individual JSON parsing components 
+    
+    Tests for String, Number, Boolean, Null, Array, and Object
+
+    """
     @pytest.fixture
-    def setup_validator(self, request):
+    def setup_validator(self, request: pytest.FixtureRequest) \
+        -> Generator[Callable[[], None], None, None]:
+        """
+        Create a JsonValidator instance, open the test file, and setup the method for testing. 
+        Passes the method to the test function. 
+        Close the file after the test is complete.
+        
+        Args:
+            request: the request object passed to the test function
+        
+        Yields:
+            The callable method based on the given test function
+        """
+
+        # get component name
+        component_name = request.cls.component_name
+
+        # instantiate validator and open given file
+        folder = f"{TEST_DATA_PATH}/{component_name}/"
         filename = request.param
+        filepath = folder + filename
         validator = JsonValidator()
-        validator.open_file(filename)
-        yield validator
+        validator.open_file(filepath)
+
+        # get method for testing given component
+        method_name = f"_{component_name}"
+        method = getattr(validator, method_name)
+
+        # pass method to tests
+        yield method
+
+        # close file
         validator.close_file()
 
-    class TestString:
-        @pytest.mark.parametrize("setup_validator, message", [
-            (f"{TEST_DATA_PATH}string/valid.json", "regular string is valid"),
-            (f"{TEST_DATA_PATH}string/valid2.json",
-                "string with double backslash is a valid string"),
-            (f"{TEST_DATA_PATH}string/valid3.json",
-                "string with backslash u followed by 4 hex is valid"),
-            (f"{TEST_DATA_PATH}string/valid4.json", "empty string is valid"),
-        ], indirect=["setup_validator"])
-        def test_valid_strings(self, setup_validator, message):
+    class _TestComponent(ABC):
+        """ Abstract base class for JSON components """
+
+        component_name = None # set in child class to the name of the component being tested
+
+        def __init_subclass__(cls, **kwargs):
+            super().__init_subclass__(**kwargs)
+            if not cls.component_name:
+                raise TypeError(f"{cls.__name__} must define a class variable `component_name`.")
+
+        @abstractmethod
+        def test_valid(self, setup_validator, message) -> None:
+            """
+            Test that valid components are accepted
+            
+            Parameterized to run all of the valid tests in the test_data/{component_name} directory
+
+            Args:
+                setup_validator: a JsonValidator component function passed from the fixture
+                message: the message to display on test failure
+                
+            """
+            # Test that valid components throw no errors
             try:
-                setup_validator._string() # pylint: disable=protected-access #testing private method _string
+                setup_validator()
             except JSONValidatorError:
                 pytest.fail(message)
+        @abstractmethod
+        def test_invalid(self, setup_validator: Callable[[], None], fail_message: str,
+            error_spec: JSONValidatorError, check_messages: str) -> None:
+            """
+            Test that invalid components throw the correct errors
+            
+            Parameterized to run all of the invalid tests in the 
+            test_data/{component_name} directory
 
-        @pytest.mark.parametrize("setup_validator,fail_message,error_spec",[
-            (f"{TEST_DATA_PATH}string/invalid.json", "no closing quote is invalid",
-                JSONValidatorError("", ErrorCode.STRING_EOF_ERROR, 1, 11)),
-            (f"{TEST_DATA_PATH}string/invalid2.json", "string with only backslash is invalid",
-                JSONValidatorError("", ErrorCode.STRING_EOF_ERROR, 1, 4)),
-            (f"{TEST_DATA_PATH}string/invalid3.json", "backslash followed by number is not valid",
-                JSONValidatorError("", ErrorCode.STRING_ESCAPE_ERROR, 1, 3)),
-            (f"{TEST_DATA_PATH}string/invalid4.json", 
-                "backslash u with less than 4 hex is not valid",
-                JSONValidatorError("", ErrorCode.STRING_HEX_ERROR, 1, 13)),
-            (f"{TEST_DATA_PATH}string/invalid5.json", "string with single quotes is invalid",
-                JSONValidatorError("", ErrorCode.STRING_EOF_ERROR, 1, 9)),
-        ], indirect=["setup_validator"])
-        def test_invalid_strings(self, setup_validator, fail_message, error_spec, check_messages):
+            Args:
+                setup_validator: a JsonValidator component function passed from the fixture
+                fail_message: the message to display if no error is thrown 
+                (if the invalid component is marked valid)
+                error_spec: the specified JSONValidatorError that should be thrown
+                check_messages: whether or not to check the message part of the error, 
+                defaults to False. Two modes normal which warns if the spec message is empty, 
+                and strict which fails if the spec message is empty
+
+            """
+            # check that invalid components do throw errors
             try:
-                setup_validator._string() # pylint: disable=protected-access #testing private method _string
+                setup_validator()
                 pytest.fail(fail_message + " (was marked valid)")
+            # checks all parts of the error code received
             except JSONValidatorError as error_received:
                 # Checks error code match
                 assert error_received.error_code == error_spec.error_code, (
                     f'Specified error {error_spec.error_code}' \
-                    f'does not match received error code {error_received.error_code}'
+                    f' does not match received error code {error_received.error_code}'
                 )
                 # Checks line number match
                 assert error_received.line == error_spec.line, \
-                    f"Specified line {error_spec.line} \
-                        does not match received line {error_received.line}"
+                    f'Specified line {error_spec.line}' \
+                    f' does not match received line {error_received.line}'
                 # Checks column number match
                 assert error_received.column == error_spec.column, \
-                    f"Specified column {error_spec.column} \
-                        does not match received column {error_received.column}"
+                    f'Specified column {error_spec.column}' \
+                    f' does not match received column {error_received.column}'
                 # Checks message match, if message option is turned on
                 if check_messages:
                     # If message spec is empty, warn or on 'strict' fail
                     if error_spec.message == "":
-                        warning = "Message specification is empty for test"
+                        warning = 'Message specification is empty for test'
+                        warning += f', received message: "{error_received.message}"'
                         if check_messages == 'strict':
                             pytest.fail(warning)
                         else:
@@ -74,36 +140,103 @@ class TestJSONComponents:
                     else:
                         assert error_received.message == error_spec.message, (
                             f'Specified message "{error_spec.message}" '
-                            f'does not match received message "{error_received.message}"'
-                    )
-                
-            
-    # class TestNumber: 
-    #     @pytest.mark.parametrize("setup_validator,message", [
-    #         (f"{TEST_DATA_PATH}number/valid.json", "regular number is valid"),
-    #         (f"{TEST_DATA_PATH}number/valid2.json", "standard negative number is valid"),
-    #         (f"{TEST_DATA_PATH}number/valid3.json", "standard decimal is valid"),
-    #         (f"{TEST_DATA_PATH}number/valid4.json", "0 start decimal is valid"),
-    #         (f"{TEST_DATA_PATH}number/valid5.json", "negative decimal is valid"),
-    #         (f"{TEST_DATA_PATH}number/valid6.json", "standard exponent with no signs or decimals is valid"),
-    #         (f"{TEST_DATA_PATH}number/valid7.json", "0.0e-1 is a valid zero negative decimal exponent"),
-    #         (f"{TEST_DATA_PATH}number/valid8.json", "number followed by a comma is valid as validation for characters after number is covered elsewhere"),
-    #     ], indirect=["setup_validator"])
-    #     def test_valid_numbers(self, setup_validator, message):
-    #         assert setup_validator.number(), message
+                            f' does not match received message "{error_received.message}"'
+                        )
 
-    #     @pytest.mark.parametrize("setup_validator,message", [
-    #         (f"{TEST_DATA_PATH}number/invalid.json", "lone minus sign is not valid"),
-    #         (f"{TEST_DATA_PATH}number/invalid2.json", "lone period is not valid"),
-    #         (f"{TEST_DATA_PATH}number/invalid3.json", "0 followed by digit is not valid"),
-    #         (f"{TEST_DATA_PATH}number/invalid4.json", "decimal with no trailing digits is invalid"),
-    #         (f"{TEST_DATA_PATH}number/invalid5.json", "decimal with no leading digits is invalid"),
-    #         (f"{TEST_DATA_PATH}number/invalid6.json", "exponent by itself is not valid"),
-    #         (f"{TEST_DATA_PATH}number/invalid7.json", "exponent sign with no trailing decimals is invalid"),
-    #     ], indirect=["setup_validator"])
-    #     def test_invalid_numbers(self, setup_validator, message):
-    #         validator = setup_validator
-    #         assert not validator.number(), message
+    class TestString(_TestComponent):
+        """ Unit tests for the _string functional component """
+
+        component_name = "string"
+
+        @pytest.mark.parametrize("setup_validator, message", [
+            ("valid.json", "regular string is valid"),
+            ("valid2.json", "string with double backslash is a valid string"),
+            ("valid3.json", "string with backslash u followed by 4 hex is valid"),
+            ("valid4.json", "empty string is valid"),
+        ], indirect=["setup_validator"])
+        def test_valid(self, setup_validator, message) -> None:
+            super().test_valid(setup_validator, message)
+
+        @pytest.mark.parametrize("setup_validator,fail_message,error_spec",[
+
+            ("invalid.json", "no closing quote is invalid",
+                JSONValidatorError("file ended in middle of string",
+                    ErrorCode.STRING_EOF_ERROR, line=1, column=11)),
+
+            ("invalid2.json", "string with only backslash is invalid",
+                JSONValidatorError("file ended in middle of string",
+                    ErrorCode.STRING_EOF_ERROR, line=1, column=4)),
+
+            ("invalid3.json", "backslash followed by number is not valid",
+                JSONValidatorError("invalid escape character in string",
+                    ErrorCode.STRING_ESCAPE_ERROR, line=1, column=3)),
+
+            ("invalid4.json",
+                "backslash u with less than 4 hex is not valid",
+                JSONValidatorError("invalid hex digit after \\u in string",
+                    ErrorCode.STRING_HEX_ERROR, line=1, column=13)),
+
+            ("invalid5.json", "string with single quotes is invalid",
+                JSONValidatorError("file ended in middle of string",
+                    ErrorCode.STRING_EOF_ERROR, line=1, column=9)),
+
+        ], indirect=["setup_validator"])
+
+        def test_invalid(self, setup_validator, fail_message, error_spec, check_messages) -> None:
+            super().test_invalid(setup_validator, fail_message, error_spec, check_messages)
+
+    class TestNumber(_TestComponent):
+
+        component_name = "number"
+
+        @pytest.mark.parametrize("setup_validator,message", [
+            ("valid.json", "regular number is valid"),
+            ("valid2.json", "standard negative number is valid"),
+            ("valid3.json", "standard decimal is valid"),
+            ("valid4.json", "0 start decimal is valid"),
+            ("valid5.json", "negative decimal is valid"),
+            ("valid6.json", "standard exponent with no signs or decimals is valid"),
+            ("valid7.json", "0.0e-1 is a valid zero negative decimal exponent"),
+            ("valid8.json", "number followed by a comma is valid as validation for " \
+                "characters after number is covered elsewhere"),
+
+        ], indirect=["setup_validator"])
+        def test_valid(self, setup_validator, message):
+            super().test_valid(setup_validator, message)
+
+        @pytest.mark.parametrize("setup_validator,fail_message,error_spec", [
+
+            ("invalid.json", "lone minus sign is not valid",
+                JSONValidatorError("file ended in middle of number",
+                    ErrorCode.NUMBER_EOF_ERROR, line=1, column=2)),
+
+            ("invalid2.json", "lone period is not valid",
+                JSONValidatorError("",
+                    ErrorCode.NUMBER_DIGIT_ERROR, line=1, column=1)),
+
+            ("invalid3.json", "0 followed by digit is not valid",
+                JSONValidatorError("",
+                    ErrorCode.NUMBER_LEADING_ZERO_ERROR, line=1, column=2)),
+
+            ("invalid4.json", "decimal with no trailing digits is invalid",
+                JSONValidatorError("",
+                    ErrorCode.NUMBER_DIGIT_ERROR, line=1, column=5)),
+
+            ("invalid5.json", "decimal with no leading digits is invalid",
+                JSONValidatorError("",
+                    ErrorCode.NUMBER_DIGIT_ERROR, line=1, column=1)),
+
+            ("invalid6.json", "exponent by itself is not valid",
+                JSONValidatorError("file ended in middle of number",
+                    ErrorCode.NUMBER_DIGIT_ERROR, line=1, column=1)),
+
+            ("invalid7.json", "exponent sign with no trailing decimals is invalid",
+                JSONValidatorError("file ended in middle of number",
+                    ErrorCode.NUMBER_EXPONENT_ERROR, line=1, column=11)),
+
+        ], indirect=["setup_validator"])
+        def test_invalid(self, setup_validator, fail_message, error_spec, check_messages) -> None:
+            super().test_invalid(setup_validator, fail_message, error_spec, check_messages)
 
     # class TestValue:
     #     @pytest.mark.parametrize("setup_validator,message", [

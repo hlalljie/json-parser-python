@@ -319,8 +319,8 @@ class JsonValidator:
             and column number
         """
         self._get_char(("end of file reached in false value", ErrorCode.VALUE_EOF_ERROR))
-        # check alse since it is the only valid string after f
-        for c in "alse": 
+        # check alse since it is the only valid string after f # cSpell: disable-line
+        for c in "alse": # cSpell: disable-line
             if c != self._token:
                 self._raise_error("invalid character in false value",
                     ErrorCode.VALUE_CHARACTER_ERROR)
@@ -541,7 +541,7 @@ class JsonValidator:
 
         # characters after final object or array are not valid
         if self._token:
-            self._raise_error("invalid character after end of final object or array", 
+            self._raise_error("invalid character after end of final object or array",
                 ErrorCode.EOF_CHARACTER_ERROR)
 
         # close file

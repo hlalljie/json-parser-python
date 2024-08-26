@@ -1,5 +1,6 @@
-# test_json_parser.py
 import pytest
+
+import warnings
 
 from json_parser_errors import ErrorCode, JSONValidatorError
 from json_parser import JsonValidator
@@ -25,8 +26,8 @@ class TestJSONComponents:
             (f"{TEST_DATA_PATH}string/valid4.json", "empty string is valid"),
         ], indirect=["setup_validator"])
         def test_valid_strings(self, setup_validator, message):
-            try: 
-                setup_validator._string()
+            try:
+                setup_validator._string() # pylint: disable=protected-access #testing private method _string
             except JSONValidatorError:
                 pytest.fail(message)
 
@@ -43,21 +44,38 @@ class TestJSONComponents:
             (f"{TEST_DATA_PATH}string/invalid5.json", "string with single quotes is invalid",
                 JSONValidatorError("", ErrorCode.STRING_EOF_ERROR, 1, 9)),
         ], indirect=["setup_validator"])
-        def test_invalid_strings(self, setup_validator, fail_message, error_spec):
-
+        def test_invalid_strings(self, setup_validator, fail_message, error_spec, check_messages):
             try:
                 setup_validator._string() # pylint: disable=protected-access #testing private method _string
                 pytest.fail(fail_message + " (was marked valid)")
             except JSONValidatorError as error_received:
-                assert error_received.error_code == error_spec.error_code, \
-                    f"Specified error {error_spec.error_code} \
-                        does not match received error code {error_received.error_code}"
+                # Checks error code match
+                assert error_received.error_code == error_spec.error_code, (
+                    f'Specified error {error_spec.error_code}' \
+                    f'does not match received error code {error_received.error_code}'
+                )
+                # Checks line number match
                 assert error_received.line == error_spec.line, \
                     f"Specified line {error_spec.line} \
                         does not match received line {error_received.line}"
+                # Checks column number match
                 assert error_received.column == error_spec.column, \
                     f"Specified column {error_spec.column} \
                         does not match received column {error_received.column}"
+                # Checks message match, if message option is turned on
+                if check_messages:
+                    # If message spec is empty, warn or on 'strict' fail
+                    if error_spec.message == "":
+                        warning = "Message specification is empty for test"
+                        if check_messages == 'strict':
+                            pytest.fail(warning)
+                        else:
+                            warnings.warn(warning)
+                    else:
+                        assert error_received.message == error_spec.message, (
+                            f'Specified message "{error_spec.message}" '
+                            f'does not match received message "{error_received.message}"'
+                    )
                 
             
     # class TestNumber: 

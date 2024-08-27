@@ -127,19 +127,17 @@ class JsonValidator:
             JSONValidatorError: An exception with error message, error code, line number,
             and column number
         """
-        # Get next character after u, cannot be eof
-        self._get_char(("cannot end file after \\u", ErrorCode.STRING_HEX_ERROR))
         # All hex digits
         hex_char = "1234567890abcdefABCDEF"
         # Check for 4 hex digits
         for _ in range(4):
+            # check if end of file
+            self._get_char(("end of file reached in string hex, must have 4 hex digits after \\u",
+                ErrorCode.STRING_HEX_ERROR))
             # Check if character is valid hex
             if self._token not in hex_char:
                 self._raise_error(
                     "invalid hex digit after \\u in string", ErrorCode.STRING_HEX_ERROR)
-            # check if end of file
-            self._get_char(("end of file reached in string hex, must have 4 hex digits after \\u",
-                ErrorCode.STRING_HEX_ERROR))
 
     def _string_backslash(self) -> None:
         """ Validates escape characters.
@@ -159,13 +157,16 @@ class JsonValidator:
         if (
             self._token == '"' or
             self._token == '\\' or
+            self._token == '/' or
             self._token == 'b' or
             self._token == 'f' or
             self._token == 'n' or
             self._token == 'r' or
-            self._token == 't' or
-            (self._token == 'u' and self._string_hex())
+            self._token == 't'
         ):
+            return
+        if (self._token == 'u'):
+            self._string_hex()
             return
         self._raise_error("invalid escape character in string", ErrorCode.STRING_ESCAPE_ERROR)
 

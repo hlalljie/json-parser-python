@@ -47,8 +47,8 @@ class _TestComponent(ABC):
             # Test that valid components throw no errors
             try:
                 setup_validator()
-            except JSONValidatorError:
-                pytest.fail(message)
+            except JSONValidatorError as error_received:
+                pytest.fail(f'"{message}" marked invalid with Error: {error_received}')
         @abstractmethod
         def test_invalid(self, setup_validator: Callable[[], None], fail_message: str,
         error_spec: JSONValidatorError, check_messages: str) -> None:
@@ -154,6 +154,8 @@ class TestJSONComponents:
             ("valid2.json", "string with double backslash is a valid string"),
             ("valid3.json", "string with backslash u followed by 4 hex is valid"),
             ("valid4.json", "empty string is valid"),
+            ("valid5.json", "string with multiple hex escapes is valid"),
+            ("valid5.json", "characters after full hex is valid"),
         ], indirect=["setup_validator"])
         def test_valid(self, setup_validator: Callable[[], None], message: str) -> None:
             super().test_valid(setup_validator, message)
@@ -385,7 +387,6 @@ class TestOfficialCases:
             Generator[Callable[[], None], None, None]: The callable method 
             based on the given test function
         """
-        print("Got here")
         # get component name
         folder_name = request.cls.component_name
 
@@ -498,7 +499,7 @@ class TestOfficialCases:
         component_name = "official_tests"
 
         @pytest.mark.parametrize("setup_validator,message", [
-            # pass.json skipped. # TODO: Need to find issue with this complex file
+            ("pass1.json", "complex json is valid"),
             ("pass2.json", "heavily nested array is valid"),
             ("pass3.json", "standard nested json is valid"),
         ], indirect=["setup_validator"])

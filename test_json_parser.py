@@ -14,6 +14,7 @@
 import warnings
 from typing import Generator, Callable
 from abc import ABC, abstractmethod
+from functools import partial
 import pytest
 from json_parser_errors import ErrorCode, JSONValidatorError
 from json_parser import JsonValidator
@@ -21,48 +22,7 @@ from json_parser import JsonValidator
 # Globals
 TEST_DATA_PATH = "./test_data/"
 
-class TestJSONComponents:
-    """ Unit tests for individual JSON parsing components 
-    
-    Tests for String, Number, Boolean, Null, Array, and Object
-
-    """
-    @pytest.fixture
-    def setup_validator(self, request: pytest.FixtureRequest) \
-        -> Generator[Callable[[], None], None, None]:
-        """
-        Create a JsonValidator instance, open the test file, and setup the method for testing. 
-        Passes the method to the test function. 
-        Close the file after the test is complete.
-        
-        Args:
-            request: the request object passed to the test function
-        
-        Yields:
-            The callable method based on the given test function
-        """
-
-        # get component name
-        component_name = request.cls.component_name
-
-        # instantiate validator and open given file
-        folder = f"{TEST_DATA_PATH}/{component_name}/"
-        filename = request.param
-        filepath = folder + filename
-        validator = JsonValidator()
-        validator.open_file(filepath)
-
-        # get method for testing given component
-        method_name = f"_{component_name}"
-        method = getattr(validator, method_name)
-
-        # pass method to tests
-        yield method
-
-        # close file
-        validator.close_file()
-
-    class _TestComponent(ABC):
+class _TestComponent(ABC):
         """ Abstract base class for JSON components """
 
         component_name = None # set in child class to the name of the component being tested
@@ -142,6 +102,47 @@ class TestJSONComponents:
                             f'Specified message "{error_spec.message}" '
                             f' does not match received message "{error_received.message}"'
                         )
+
+class TestJSONComponents:
+    """ Unit tests for individual JSON parsing components 
+    
+    Tests for String, Number, Boolean, Null, Array, and Object
+
+    """
+    @pytest.fixture
+    def setup_validator(self, request: pytest.FixtureRequest) \
+        -> Generator[Callable[[], None], None, None]:
+        """
+        Create a JsonValidator instance, open the test file, and setup the method for testing. 
+        Passes the method to the test function. 
+        Close the file after the test is complete.
+        
+        Args:
+            request: the request object passed to the test function
+        
+        Yields:
+            The callable method based on the given test function
+        """
+
+        # get component name
+        component_name = request.cls.component_name
+
+        # instantiate validator and open given file
+        folder = f"{TEST_DATA_PATH}/{component_name}/"
+        filename = request.param
+        filepath = folder + filename
+        validator = JsonValidator()
+        validator.open_file(filepath)
+
+        # get method for testing given component
+        method_name = f"_{component_name}"
+        method = getattr(validator, method_name)
+
+        # pass method to tests
+        yield method
+
+        # close file
+        validator.close_file()
 
     class TestString(_TestComponent):
         """ Unit tests for the _string functional component """
@@ -367,113 +368,242 @@ class TestJSONComponents:
         def test_invalid(self, setup_validator: Callable[[], None], fail_message: str,
         error_spec: JSONValidatorError, check_messages: str) -> None:
             super().test_invalid(setup_validator, fail_message, error_spec, check_messages)
-# class TestJSONChallenges:
 
-#     @pytest.fixture
-#     def setup_validator(self, request):
-#         validator = JsonValidator()
-#         return validator
+class TestOfficialCases:
+    @pytest.fixture
+    def setup_validator(self, request: pytest.FixtureRequest) \
+        -> Generator[Callable[[], None], None, None]:
+        """
+        Create a JsonValidator instance.
+        Create a partial function with the validate_json method and the filename. 
+        Passes the method to the test function.
+        
+        Args:
+            request: the request object passed to the test function
+        
+        Returns:
+            Generator[Callable[[], None], None, None]: The callable method 
+            based on the given test function
+        """
+        print("Got here")
+        # get component name
+        folder_name = request.cls.component_name
 
-#     @pytest.mark.parametrize("filename,expected,message", [
-#         ("step1/invalid.json", False, "empty file is not valid json"),
-#         ("step1/valid.json", True, "file with only matching curly braces is valid json"),
-#         ("step1/my_invalid.json", False, "unclosed curly brace is not valid json"),
-#         ("step1/my_invalid2.json", False, "closing curly brace without open brace is not valid json"),
-#         ("step1/my_invalid3.json", False, "bracket closed before more recent open curly brace is invalid json"),
-#         ("step1/my_valid.json", True, "matching square brackets with whitespace is valid json"),
-#         ]
-#     )
-#     def test_step1(self, setup_validator, filename, expected, message):
-#         assert setup_validator.validate_json(f"{TEST_DATA_PATH}{filename}") == expected, message
+        # instantiate validator and open given file
+        folder = f"{TEST_DATA_PATH}/{folder_name}/"
+        filename = request.param
+        filepath = folder + filename
+        validator = JsonValidator()
 
-#     @pytest.mark.parametrize("filename,expected,message", [
-#         ("step2/valid.json", True, "object with one key value pair is valid"),
-#         ("step2/valid2.json", True, "object with two key value pairs is valid"),
-#         ("step2/invalid.json", False, "object with one key value pair followed by comma is invalid"),
-#         ("step2/invalid2.json", False, "object non-string key is not valid")
-#         ]
-#     )
-#     def test_step2(self, setup_validator, filename, expected, message):
-#         assert setup_validator.validate_json(f"{TEST_DATA_PATH}{filename}") == expected, message
+        # get method for testing given component
+        method = partial(validator.validate_json, filepath)
 
-#     @pytest.mark.parametrize("filename,expected,message", [
-#         ("step3/valid.json", True, "object with bool, null, number, and string values is valid"),
-#         ("step3/invalid.json", False, "object with False as a value is not valid")
-#         ]
-#     )
-#     def test_step3(self, setup_validator, filename, expected, message):
-#         assert setup_validator.validate_json(f"{TEST_DATA_PATH}{filename}") == expected, message
+        # pass method to tests
+        return method
+    class TestStep1(_TestComponent):
 
-#     @pytest.mark.parametrize("filename,expected,message", [
-#         ("step4/valid.json", True, "object with string, number, array, and object values is valid"),
-#         ("step4/valid2.json", True, "object with nested object and array is valid"),
-#         ("step4/invalid.json", False, "single quotes for string delimiter is not valid")
-#         ]
-#     )
-#     def test_step4(self, setup_validator, filename, expected, message):
-#         assert setup_validator.validate_json(f"{TEST_DATA_PATH}{filename}") == expected, message
+        component_name = "step1"
+        @pytest.mark.parametrize("setup_validator,message", [
+            ("valid.json", "file with only matching curly braces is valid json"),
+            ("my_valid.json", "matching square brackets with whitespace is valid json"),
+            ], indirect=["setup_validator"]
+        )
+        def test_valid(self, setup_validator, message):
+            super().test_valid(setup_validator, message)
 
-# class TestOfficialJSONTests:
+        @pytest.mark.parametrize("setup_validator,fail_message,error_spec", [
+            ("invalid.json", "empty file is not valid json",
+                JSONValidatorError("", ErrorCode.INVALID_START_ERROR, line=1, column=1)),
 
-    # @pytest.fixture
-    # def setup_validator(self, request):
-    #     validator = JsonValidator()
-    #     return validator
+            ("my_invalid.json", "unclosed curly brace is not valid json",
+                JSONValidatorError("", ErrorCode.OBJECT_EOF_ERROR, line=1, column=2)),
 
-    # @pytest.mark.parametrize("filename,expected,message", [
-    #     ("fail1.json", False, "A JSON payload should be an object or array, not a string."),
-    #     ("fail2.json", False, "Unclosed array is not valid"),
-    #     ("fail3.json", False, "unquoted key is not valid"),
-    #     ("fail4.json", False, "Extra comma after value in array is not valid"),
-    #     ("fail5.json", False, "double extra comma after value in array is not valid"),
-    #     ("fail6.json", False, "missing value before array is not valid"),
-    #     ("fail7.json", False, "comma after closing array is not valid"),
-    #     ("fail8.json", False, "extra closing bracket is not valid"),
-    #     ("fail9.json", False, "comma after bool value with following key value pair is valid"),
-    #     ("fail10.json", False, "quoted value after close is not valid"),
-    #     ("fail11.json", False, "expression as value is not valid"),
-    #     ("fail12.json", False, "function as value is not valid"),
-    #     ("fail13.json", False, "number with leading zero is not valid"),
-    #     ("fail14.json", False, "hex number value is not valid"),
-    #     ("fail15.json", False, "backslash x in string is not valid"),
-    #     ("fail16.json", False, "backslash naked value is not valid"),
-    #     ("fail17.json", False, "backslash 0 is not valid"),
-    #     ("fail19.json", False, 'missing ":" in key value pair is not valid'),
-    #     ("fail20.json", False, "double colon is not valid"),
-    #     ("fail21.json", False, "comma instead of colon not valid"),
-    #     ("fail22.json", False, "colon instead of comma not valid"),
-    #     ("fail23.json", False, "truth is not valid value"),
-    #     ("fail24.json", False, "single quote for array is not valid"),
-    #     ("fail26.json", False, "backslash tab character in string is not valid"),
-    #     ("fail28.json", False, "backslash linebreak in string is not valid"),
-    #     ("fail29.json", False, "number with empty exponent value is not valid"),
-    #     ("fail30.json", False, "number with empty positive exponent is not valid"),
-    #     ("fail31.json", False, "number with positive and negative exponent is not valid"),
-    #     ("fail32.json", False, "comma instead of closing brace is not valid"),
-    #     ("fail33.json", False, "mismatched bracket with brace is not valid"),
-    #     ("pass2.json", True, "heavily nested array is valid"),
-    #     ("pass3.json", True, "standard nested json is valid"),
-    # ])
-    # def test_official_json_tests(self, setup_validator, filename, expected, message):
-    #     assert setup_validator.validate_json(f"{TEST_DATA_PATH}official_tests/{filename}") == expected, message
+            ("my_invalid2.json", "closing curly brace without open brace is not valid json",
+                JSONValidatorError("", ErrorCode.INVALID_START_ERROR, line=1, column=1)), 
 
-    # # TODO: Implement these tests when ready
-    # @pytest.mark.skip(reason="No official documentation supporting this test")
-    # def test_fail18(self):
-    #     # Test for array depth of 20 not valid
-    #     pass
+            ("my_invalid3.json", "bracket closed before more recent open curly brace is invalid json",
+                JSONValidatorError("", ErrorCode.OBJECT_KEY_ERROR, line=1, column=3))
 
-    # @pytest.mark.skip(reason="Need to implement tab handling in strings")
-    # def test_fail25(self):
-    #     # Test for tab character in string is not valid
-    #     pass
+            ],indirect=["setup_validator"]
+        )
+        def test_invalid(self, setup_validator: Callable[[], None], fail_message: str,
+        error_spec: JSONValidatorError, check_messages: str) -> None:
+            super().test_invalid(setup_validator, fail_message, error_spec, check_messages)
 
-    # @pytest.mark.skip(reason="Need to handle line break handling in strings")
-    # def test_fail27(self):
-    #     # Test for line break character in string is not valid
-    #     pass
+    class TestStep2(_TestComponent):
+        component_name = "step2"
+        @pytest.mark.parametrize("setup_validator,message", [
+            ("valid.json", "object with one key value pair is valid"),
+            ("valid2.json", "object with two key value pairs is valid"),
+            ], indirect=["setup_validator"]
+        )
+        def test_valid(self, setup_validator, message):
+                super().test_valid(setup_validator, message)
+        @pytest.mark.parametrize("setup_validator,fail_message,error_spec", [
+            ("invalid.json", "object with one key value pair followed by comma is invalid",
+                JSONValidatorError("", ErrorCode.OBJECT_KEY_ERROR, line=1, column=17)),
 
-    # @pytest.mark.skip(reason="Not yet implemented, need to find issues with this large test")
-    # def test_pass1(self):
-    #     # Test for complex json is valid (pass1)
-    #     pass
+            ("invalid2.json", "object non-string key is not valid",
+                JSONValidatorError("", ErrorCode.OBJECT_KEY_ERROR, line=3, column=3))
+
+            ], indirect=["setup_validator"]
+        )
+        def test_invalid(self, setup_validator: Callable[[], None], fail_message: str,
+            error_spec: JSONValidatorError, check_messages: str) -> None:
+                super().test_invalid(setup_validator, fail_message, error_spec, check_messages)
+
+    class TestStep3(_TestComponent):
+        component_name = "step3"
+
+        @pytest.mark.parametrize("setup_validator,message", [
+            ("valid.json", "object with bool, null, number, and string values is valid"),
+            ], indirect=["setup_validator"]
+        )
+        def test_valid(self, setup_validator, message):
+            super().test_valid(setup_validator, message)
+        
+        @pytest.mark.parametrize("setup_validator,fail_message,error_spec", [
+
+            ("invalid.json", "object with False as a value is not valid",
+                JSONValidatorError("", ErrorCode.VALUE_CHARACTER_ERROR, line=3, column=11)),
+
+        ], indirect=["setup_validator"])
+        def test_invalid(self, setup_validator: Callable[[], None], fail_message: str,
+            error_spec: JSONValidatorError, check_messages: str) -> None:
+            super().test_invalid(setup_validator, fail_message, error_spec, check_messages)
+
+    class TestStep4(_TestComponent):
+        component_name = "step4"
+
+        @pytest.mark.parametrize("setup_validator,message", [
+            ("valid.json", "object with string, number, array, and object values is valid"),
+            ("valid2.json", "object with nested object and array is valid"),
+            ], indirect=["setup_validator"]
+        )
+        def test_valid(self, setup_validator, message):
+            super().test_valid(setup_validator, message)
+        
+        @pytest.mark.parametrize("setup_validator,fail_message,error_spec", [
+
+            ("invalid.json", "single quotes for string delimiter is not valid",
+                JSONValidatorError("", ErrorCode.VALUE_CHARACTER_ERROR, line=7, column=13)),
+
+        ], indirect=["setup_validator"])
+        def test_invalid(self, setup_validator: Callable[[], None], fail_message: str,
+            error_spec: JSONValidatorError, check_messages: str) -> None:
+            super().test_invalid(setup_validator, fail_message, error_spec, check_messages)
+
+    class TestOfficialJSONTests(_TestComponent):
+
+        component_name = "official_tests"
+
+        @pytest.mark.parametrize("setup_validator,message", [
+            # pass.json skipped. # TODO: Need to find issue with this complex file
+            ("pass2.json", "heavily nested array is valid"),
+            ("pass3.json", "standard nested json is valid"),
+        ], indirect=["setup_validator"])
+        def test_valid(self, setup_validator, message):
+            super().test_valid(setup_validator, message)
+
+        @pytest.mark.parametrize("setup_validator,fail_message,error_spec", [
+            
+            ("fail1.json", "A JSON payload should be an object or array, not a string.",
+                JSONValidatorError("", ErrorCode.INVALID_START_ERROR, line=1, column=1)),
+
+            ("fail2.json", "Unclosed array is not valid",
+                JSONValidatorError("", ErrorCode.ARRAY_CHARACTER_ERROR, line=1, column=18)),
+
+            ("fail3.json", "unquoted key is not valid",
+                JSONValidatorError("", ErrorCode.OBJECT_KEY_ERROR, line=1, column=2)),
+
+            ("fail4.json", "Extra comma after value in array is not valid",
+                JSONValidatorError("", ErrorCode.VALUE_CHARACTER_ERROR, line=1, column=16)),
+
+            ("fail5.json", "double extra comma after value in array is not valid",
+                JSONValidatorError("", ErrorCode.VALUE_CHARACTER_ERROR, line=1, column=23)),
+
+            ("fail6.json", "missing value before array is not valid",
+                JSONValidatorError("", ErrorCode.VALUE_CHARACTER_ERROR, line=1, column=5)),
+
+            ("fail7.json", "comma after closing array is not valid",
+                JSONValidatorError("", ErrorCode.EOF_CHARACTER_ERROR, line=1, column=26)),
+
+            ("fail8.json", "extra closing bracket is not valid",
+                JSONValidatorError("", ErrorCode.EOF_CHARACTER_ERROR, line=1, column=16)),
+
+            ("fail9.json", "comma after bool value with following key value pair is valid",
+                JSONValidatorError("", ErrorCode.OBJECT_KEY_ERROR, line=1, column=22)),
+
+            ("fail10.json", "quoted value after close is not valid",
+                JSONValidatorError("", ErrorCode.EOF_CHARACTER_ERROR, line=1, column=35)),
+
+            ("fail11.json", "expression as value is not valid",
+                JSONValidatorError("", ErrorCode.OBJECT_CLOSE_ERROR, line=1, column=26)),
+
+            ("fail12.json", "function as value is not valid",
+                JSONValidatorError("", ErrorCode.VALUE_CHARACTER_ERROR, line=1, column=24)),
+
+            ("fail13.json", "number with leading zero is not valid",
+                JSONValidatorError("", ErrorCode.NUMBER_LEADING_ZERO_ERROR, line=1, column=41)),
+
+            ("fail14.json", "hex number value is not valid",
+                JSONValidatorError("", ErrorCode.OBJECT_CLOSE_ERROR, line=1, column=28)),
+
+            ("fail15.json", "backslash x in string is not valid",
+                JSONValidatorError("", ErrorCode.STRING_ESCAPE_ERROR, line=1, column=30)),
+
+            ("fail16.json", "backslash naked value is not valid",
+                JSONValidatorError("", ErrorCode.VALUE_CHARACTER_ERROR, line=1, column=2)),
+
+            ("fail17.json", "backslash 0 is not valid",
+                JSONValidatorError("", ErrorCode.STRING_ESCAPE_ERROR, line=1, column=30)),
+
+            # fail18.json skipped, no supporting documentation for max nested of arrays
+
+            ("fail19.json", 'missing ":" in key value pair is not valid',
+                JSONValidatorError("", ErrorCode.OBJECT_SEPARATOR_ERROR, line=1, column=18)),
+
+            ("fail20.json", "double colon is not valid",
+                JSONValidatorError("", ErrorCode.VALUE_CHARACTER_ERROR, line=1, column=17)),
+
+            ("fail21.json", "comma instead of colon not valid",
+                JSONValidatorError("", ErrorCode.OBJECT_SEPARATOR_ERROR, line=1, column=26)),
+
+            ("fail22.json", "colon instead of comma not valid",
+                JSONValidatorError("", ErrorCode.ARRAY_CHARACTER_ERROR, line=1, column=26)),
+
+            ("fail23.json", "truth is not valid value",
+                JSONValidatorError("", ErrorCode.VALUE_CHARACTER_ERROR, line=1, column=18)),
+
+            ("fail24.json", "single quote for array is not valid",
+                JSONValidatorError("", ErrorCode.VALUE_CHARACTER_ERROR, line=1, column=2)),
+
+            # fail25.json skipped. TODO: Need tab handling in strings
+
+            ("fail26.json", "backslash tab character in string is not valid",
+                JSONValidatorError("", ErrorCode.STRING_ESCAPE_ERROR, line=1, column=7)),
+
+            # fail27.json skipped. # TODO: Need newline handling in strings
+
+            ("fail28.json", "backslash line break in string is not valid",
+                JSONValidatorError("", ErrorCode.STRING_ESCAPE_ERROR, line=1, column=8)),
+
+            ("fail29.json", "number with empty exponent value is not valid",
+                JSONValidatorError("", ErrorCode.NUMBER_EXPONENT_ERROR, line=1, column=4)),
+
+            ("fail30.json", "number with empty positive exponent is not valid",
+                JSONValidatorError("", ErrorCode.NUMBER_EXPONENT_ERROR, line=1, column=5)),
+
+            ("fail31.json", "number with positive and negative exponent is not valid",
+                JSONValidatorError("", ErrorCode.NUMBER_EXPONENT_ERROR, line=1, column=5)),
+
+            ("fail32.json", "comma instead of closing brace is not valid",
+                JSONValidatorError("", ErrorCode.OBJECT_EOF_ERROR, line=1, column=41)),
+
+            ("fail33.json", "mismatched bracket with brace is not valid",
+                JSONValidatorError("", ErrorCode.ARRAY_CHARACTER_ERROR, line=1, column=12)),
+
+        ], indirect=["setup_validator"])
+        def test_invalid(self, setup_validator: Callable[[], None], fail_message: str,
+            error_spec: JSONValidatorError, check_messages: str) -> None:
+            super().test_invalid(setup_validator, fail_message, error_spec, check_messages)

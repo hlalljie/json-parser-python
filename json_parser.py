@@ -182,6 +182,10 @@ class JsonValidator:
         # checks for escape characters
         if self._token == '\\':
             self._string_backslash()
+        elif self._token == '\t':
+            self._raise_error("invalid tab character in string", ErrorCode.STRING_CHARACTER_ERROR)
+        elif self._token == '\n':
+            self._raise_error("invalid newline character in string", ErrorCode.STRING_CHARACTER_ERROR)
         # check for end of string
         elif self._token == '"':
             return

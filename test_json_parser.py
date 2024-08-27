@@ -579,12 +579,14 @@ class TestOfficialCases:
             ("fail24.json", "single quote for array is not valid",
                 JSONValidatorError("", ErrorCode.VALUE_CHARACTER_ERROR, line=1, column=2)),
 
-            # fail25.json skipped. TODO: Need tab handling in strings
+            ("fail25.json", "tab character in string is not valid",
+                JSONValidatorError("", ErrorCode.STRING_CHARACTER_ERROR, line=1, column=3)),
 
             ("fail26.json", "backslash tab character in string is not valid",
                 JSONValidatorError("", ErrorCode.STRING_ESCAPE_ERROR, line=1, column=7)),
 
-            # fail27.json skipped. # TODO: Need newline handling in strings
+            ("fail27.json", "newline character in string is not valid",
+                JSONValidatorError("", ErrorCode.STRING_CHARACTER_ERROR, line=1, column=7)),
 
             ("fail28.json", "backslash line break in string is not valid",
                 JSONValidatorError("", ErrorCode.STRING_ESCAPE_ERROR, line=1, column=8)),

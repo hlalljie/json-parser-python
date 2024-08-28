@@ -1,5 +1,5 @@
 """
-    json_parser.py
+    json_validator.py
 
     A recursive descent parser for JSON files.
 
@@ -8,7 +8,7 @@
         validator.validate_json("valid.json") # True"
 """
 
-from json_parser_errors import ErrorCode, JSONValidatorError
+from json_validator_errors import ErrorCode, JSONValidatorError
 
 class JsonValidator:
     """ A validator for JSON files.

@@ -1,5 +1,5 @@
 """
-    test_json_parser.py
+    test_json_validator.py
     
     This module contains unit tests for the json_parser.py module.
     Included in this testing module are:
@@ -16,8 +16,8 @@ from typing import Generator, Callable
 from abc import ABC, abstractmethod
 from functools import partial
 import pytest
-from json_parser_errors import ErrorCode, JSONValidatorError
-from json_parser import JsonValidator
+from json_validator_errors import ErrorCode, JSONValidatorError
+from json_validator import JsonValidator
 
 # Globals
 TEST_DATA_PATH = "./test_data/"

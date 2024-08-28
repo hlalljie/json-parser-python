@@ -4,7 +4,12 @@ import venv
 import os
 import shutil
 
-def test_installation():
+def test_installation() -> None:
+    """Test that the CLI can be installed in a virtual environment
+    
+    This test is intended to be run with pytest.
+    """
+
     # Save the current working directory
     original_cwd = os.getcwd()
 
@@ -18,12 +23,15 @@ def test_installation():
         venv_dir = os.path.join(script_dir, 'temp_venv')
         python_executable = os.path.join(venv_dir, 'bin', 'python')
 
+        # Create the virtual environment
         print(f"Creating virtual environment at {venv_dir} using {sys.executable}")
         venv.create(venv_dir, with_pip=True, clear=True, symlinks=True, system_site_packages=False)
 
+        # Check that the Python executable exists
         if not os.path.exists(python_executable):
             raise FileNotFoundError(f"Virtual environment's Python executable not found at {python_executable}")
 
+        # Install the CLI
         print(f"Installing CLI in the virtual environment using {python_executable}")
         subprocess.run([python_executable, '-m', 'pip', 'install', '.'], check=True)
 
@@ -31,7 +39,7 @@ def test_installation():
         cli_executable = os.path.join(venv_dir, 'bin', 'validate_json')
         json_file_path = os.path.join(project_root, 'test', 'test_data', 'file', 'valid.json')
         result = subprocess.run([cli_executable, json_file_path], capture_output=True, text=True)
-
+        
         print("STDOUT:", result.stdout)
         print("STDERR:", result.stderr)
 

@@ -7,5 +7,5 @@ src/validate_json.egg-info/entry_points.txt
 src/validate_json.egg-info/requires.txt
 src/validate_json.egg-info/top_level.txt
 test/test_cli.py
+test/test_installation.py
 test/test_json_validator.py
-test/test_z_installation.py

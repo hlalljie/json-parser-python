@@ -1,0 +1,9 @@
+setup.py
+src/json_validator.egg-info/PKG-INFO
+src/json_validator.egg-info/SOURCES.txt
+src/json_validator.egg-info/dependency_links.txt
+src/json_validator.egg-info/entry_points.txt
+src/json_validator.egg-info/requires.txt
+src/json_validator.egg-info/top_level.txt
+test/test_cli.py
+test/test_json_validator.py

@@ -15,33 +15,35 @@ class ErrorCode(Enum):
     # File errors
     FILE_NOT_FOUND = 2
     FILE_READ_ERROR = 3
+    FILE_TYPE_ERROR = 4
+    FILE_MISSING_ERROR = 5
     # String errors
-    STRING_HEX_ERROR = 4
-    STRING_ESCAPE_ERROR = 5
-    STRING_EOF_ERROR = 6
-    STRING_CHARACTER_ERROR = 7
+    STRING_HEX_ERROR = 6
+    STRING_ESCAPE_ERROR = 7
+    STRING_EOF_ERROR = 8
+    STRING_CHARACTER_ERROR = 9
     # Number errors
-    NUMBER_EOF_ERROR = 8
-    NUMBER_DIGIT_ERROR = 9
-    NUMBER_EXPONENT_ERROR = 10
-    NUMBER_LEADING_ZERO_ERROR = 11
+    NUMBER_EOF_ERROR = 10
+    NUMBER_DIGIT_ERROR = 11
+    NUMBER_EXPONENT_ERROR = 12
+    NUMBER_LEADING_ZERO_ERROR = 13
     # Value errors
-    VALUE_EOF_ERROR = 12
-    VALUE_CHARACTER_ERROR = 13
+    VALUE_EOF_ERROR = 14
+    VALUE_CHARACTER_ERROR = 15
     # Array errors
-    ARRAY_EOF_ERROR = 14
-    ARRAY_CHARACTER_ERROR = 15
+    ARRAY_EOF_ERROR = 16
+    ARRAY_CHARACTER_ERROR = 17
     # Object errors
-    OBJECT_EOF_ERROR = 16
-    OBJECT_KEY_ERROR = 17
-    OBJECT_SEPARATOR_ERROR = 18
-    OBJECT_VALUE_ERROR = 19
-    OBJECT_CLOSE_ERROR = 20
+    OBJECT_EOF_ERROR = 18
+    OBJECT_KEY_ERROR = 19
+    OBJECT_SEPARATOR_ERROR = 20
+    OBJECT_VALUE_ERROR = 21
+    OBJECT_CLOSE_ERROR = 22
     # Outside of JSON error
-    INVALID_START_ERROR = 21
-    EOF_CHARACTER_ERROR = 22
+    INVALID_START_ERROR = 23
+    EOF_CHARACTER_ERROR = 24
     # Other errors
-    UNRECOGNIZED_ERROR = 23
+    UNRECOGNIZED_ERROR = 25
 
     def __str__(self):
         return f"{self.name}({self.value})"
@@ -68,7 +70,7 @@ class JSONValidatorError(Exception):
     def __str__(self):
         if not self.line and not self.column:
             return f"{self.error_code.name}: {self.message}"
-        return f"{self.error_code.name}: {self.message} at line {self.line}, column {self.column}"
+        return f"{self.error_code.name}({self.error_code.value}) line {self.line}, column {self.column}: {self.message}"
     
     def __repr__(self):
         return self.__str__()

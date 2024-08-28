@@ -23,85 +23,85 @@ from src.json_validator import JsonValidator
 TEST_DATA_PATH = "test/test_data/"
 
 class _TestComponent(ABC):
-        """ Abstract base class for JSON components """
+    """ Abstract base class for JSON components """
 
-        component_name = None # set in child class to the name of the component being tested
+    component_name = None # set in child class to the name of the component being tested
 
-        def __init_subclass__(cls, **kwargs):
-            super().__init_subclass__(**kwargs)
-            if not cls.component_name:
-                raise TypeError(f"{cls.__name__} must define a class variable `component_name`.")
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        if not cls.component_name:
+            raise TypeError(f"{cls.__name__} must define a class variable `component_name`.")
 
-        @abstractmethod
-        def test_valid(self, setup_validator: Callable[[], None], message: str) -> None:
-            """
-            Test that valid components are accepted
+    @abstractmethod
+    def test_valid(self, setup_validator: Callable[[], None], message: str) -> None:
+        """
+        Test that valid components are accepted
+        
+        Parameterized to run all of the valid tests in the test_data/{component_name} directory
+
+        Args:
+            setup_validator: a JsonValidator component function passed from the fixture
+            message: the message to display on test failure
             
-            Parameterized to run all of the valid tests in the test_data/{component_name} directory
+        """
+        # Test that valid components throw no errors
+        try:
+            setup_validator()
+        except JSONValidatorError as error_received:
+            pytest.fail(f'"{message}" marked invalid with Error: {error_received}')
+    @abstractmethod
+    def test_invalid(self, setup_validator: Callable[[], None], fail_message: str,
+    error_spec: JSONValidatorError, check_messages: str) -> None:
+        """
+        Test that invalid components throw the correct errors
+        
+        Parameterized to run all of the invalid tests in the 
+        test_data/{component_name} directory
 
-            Args:
-                setup_validator: a JsonValidator component function passed from the fixture
-                message: the message to display on test failure
-                
-            """
-            # Test that valid components throw no errors
-            try:
-                setup_validator()
-            except JSONValidatorError as error_received:
-                pytest.fail(f'"{message}" marked invalid with Error: {error_received}')
-        @abstractmethod
-        def test_invalid(self, setup_validator: Callable[[], None], fail_message: str,
-        error_spec: JSONValidatorError, check_messages: str) -> None:
-            """
-            Test that invalid components throw the correct errors
-            
-            Parameterized to run all of the invalid tests in the 
-            test_data/{component_name} directory
+        Args:
+            setup_validator: a JsonValidator component function passed from the fixture
+            fail_message: the message to display if no error is thrown 
+            (if the invalid component is marked valid)
+            error_spec: the specified JSONValidatorError that should be thrown
+            check_messages: whether or not to check the message part of the error, 
+            defaults to False. Two modes normal which warns if the spec message is empty, 
+            and strict which fails if the spec message is empty
 
-            Args:
-                setup_validator: a JsonValidator component function passed from the fixture
-                fail_message: the message to display if no error is thrown 
-                (if the invalid component is marked valid)
-                error_spec: the specified JSONValidatorError that should be thrown
-                check_messages: whether or not to check the message part of the error, 
-                defaults to False. Two modes normal which warns if the spec message is empty, 
-                and strict which fails if the spec message is empty
-
-            """
-            # check that invalid components do throw errors
-            try:
-                setup_validator()
-                pytest.fail(fail_message + " (was marked valid)")
-            # checks all parts of the error code received
-            except JSONValidatorError as error_received:
-                # Checks error code match
-                assert error_received.error_code == error_spec.error_code, (
-                    f'Specified error {error_spec.error_code}' \
-                    f' does not match received error code {error_received.error_code}'
-                )
-                # Checks line number match
-                assert error_received.line == error_spec.line, \
-                    f'Specified line {error_spec.line}' \
-                    f' does not match received line {error_received.line}'
-                # Checks column number match
-                assert error_received.column == error_spec.column, \
-                    f'Specified column {error_spec.column}' \
-                    f' does not match received column {error_received.column}'
-                # Checks message match, if message option is turned on
-                if check_messages:
-                    # If message spec is empty, warn or on 'strict' fail
-                    if error_spec.message == "":
-                        warning = 'Message specification is empty for test'
-                        warning += f', received message: "{error_received.message}"'
-                        if check_messages == 'strict':
-                            pytest.fail(warning)
-                        else:
-                            warnings.warn(warning)
+        """
+        # check that invalid components do throw errors
+        try:
+            setup_validator()
+            pytest.fail(fail_message + " (was marked valid)")
+        # checks all parts of the error code received
+        except JSONValidatorError as error_received:
+            # Checks error code match
+            assert error_received.error_code == error_spec.error_code, (
+                f'Specified error {error_spec.error_code}' \
+                f' does not match received error code {error_received.error_code}'
+            )
+            # Checks line number match
+            assert error_received.line == error_spec.line, \
+                f'Specified line {error_spec.line}' \
+                f' does not match received line {error_received.line}'
+            # Checks column number match
+            assert error_received.column == error_spec.column, \
+                f'Specified column {error_spec.column}' \
+                f' does not match received column {error_received.column}'
+            # Checks message match, if message option is turned on
+            if check_messages:
+                # If message spec is empty, warn or on 'strict' fail
+                if error_spec.message == "":
+                    warning = 'Message specification is empty for test'
+                    warning += f', received message: "{error_received.message}"'
+                    if check_messages == 'strict':
+                        pytest.fail(warning)
                     else:
-                        assert error_received.message == error_spec.message, (
-                            f'Specified message "{error_spec.message}" '
-                            f' does not match received message "{error_received.message}"'
-                        )
+                        warnings.warn(warning)
+                else:
+                    assert error_received.message == error_spec.message, (
+                        f'Specified message "{error_spec.message}" '
+                        f' does not match received message "{error_received.message}"'
+                    )
 
 class TestJSONComponents:
     """ Unit tests for individual JSON parsing components 
@@ -439,7 +439,7 @@ class TestOfficialCases:
             ], indirect=["setup_validator"]
         )
         def test_valid(self, setup_validator, message):
-                super().test_valid(setup_validator, message)
+            super().test_valid(setup_validator, message)
         @pytest.mark.parametrize("setup_validator,fail_message,error_spec", [
             ("invalid.json", "object with one key value pair followed by comma is invalid",
                 JSONValidatorError("", ErrorCode.OBJECT_KEY_ERROR, line=1, column=17)),

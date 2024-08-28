@@ -58,6 +58,13 @@ class JsonValidator:
             JSONValidatorError: An exception with error message, error code, line number,
             and column number
         """
+        # check for no file provided
+        if not filename or "." not in filename:
+            self._raise_error("no file specified", ErrorCode.FILE_MISSING_ERROR)
+        # check for invalid file type
+        if not filename.endswith(".json"):
+            self._raise_error("invalid file type", ErrorCode.FILE_TYPE_ERROR)
+        # open file and throw error if not found
         try:
             self._file = open(filename, "r", encoding="UTF-8")
         except FileNotFoundError as e:

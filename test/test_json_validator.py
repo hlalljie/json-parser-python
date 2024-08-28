@@ -16,11 +16,11 @@ from typing import Generator, Callable
 from abc import ABC, abstractmethod
 from functools import partial
 import pytest
-from json_validator_errors import ErrorCode, JSONValidatorError
-from json_validator import JsonValidator
+from src.json_validator_errors import ErrorCode, JSONValidatorError
+from src.json_validator import JsonValidator
 
 # Globals
-TEST_DATA_PATH = "./test_data/"
+TEST_DATA_PATH = "test/test_data/"
 
 class _TestComponent(ABC):
         """ Abstract base class for JSON components """
@@ -128,7 +128,7 @@ class TestJSONComponents:
         component_name = request.cls.component_name
 
         # instantiate validator and open given file
-        folder = f"{TEST_DATA_PATH}/{component_name}/"
+        folder = f"{TEST_DATA_PATH}{component_name}/"
         filename = request.param
         filepath = folder + filename
         validator = JsonValidator()
@@ -391,7 +391,7 @@ class TestOfficialCases:
         folder_name = request.cls.component_name
 
         # instantiate validator and open given file
-        folder = f"{TEST_DATA_PATH}/{folder_name}/"
+        folder = f"{TEST_DATA_PATH}{folder_name}/"
         filename = request.param
         filepath = folder + filename
         validator = JsonValidator()

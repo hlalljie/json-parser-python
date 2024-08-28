@@ -40,6 +40,8 @@ class ErrorCode(Enum):
     # Outside of JSON error
     INVALID_START_ERROR = 21
     EOF_CHARACTER_ERROR = 22
+    # Other errors
+    UNRECOGNIZED_ERROR = 23
 
     def __str__(self):
         return f"{self.name}({self.value})"

@@ -8,7 +8,7 @@
         validator.validate_json("valid.json") # True"
 """
 
-from json_validator_errors import ErrorCode, JSONValidatorError
+from src.json_validator_errors import ErrorCode, JSONValidatorError
 
 class JsonValidator:
     """ A validator for JSON files.

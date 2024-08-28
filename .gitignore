@@ -1,4 +1,6 @@
 .vscode/settings.json
 .DS_Store
-/__pycache__
-/__pycache__/
+__pycache__/
+.vscode/
+.pytest_cache/
+venv/

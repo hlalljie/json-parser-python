@@ -29,7 +29,8 @@ def test_installation() -> None:
 
         # Check that the Python executable exists
         if not os.path.exists(python_executable):
-            raise FileNotFoundError(f"Virtual environment's Python executable not found at {python_executable}")
+            raise FileNotFoundError("Virtual environment's Python executable" \
+                f"not found at {python_executable}")
 
         # Install the CLI
         print(f"Installing CLI in the virtual environment using {python_executable}")
@@ -38,8 +39,8 @@ def test_installation() -> None:
         # Run the CLI command as a test
         cli_executable = os.path.join(venv_dir, 'bin', 'validate_json')
         json_file_path = os.path.join(project_root, 'test', 'test_data', 'file', 'valid.json')
-        result = subprocess.run([cli_executable, json_file_path], capture_output=True, text=True)
-        
+        result = subprocess.run(['validate_json', json_file_path], capture_output=True, text=True)
+
         print("STDOUT:", result.stdout)
         print("STDERR:", result.stderr)
 
@@ -56,4 +57,3 @@ def test_installation() -> None:
             shutil.rmtree(venv_dir)
         else:
             print(f"Warning: {venv_dir} directory not found during cleanup.")
-

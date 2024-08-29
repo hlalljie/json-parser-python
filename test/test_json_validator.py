@@ -16,8 +16,8 @@ from typing import Generator, Callable
 from abc import ABC, abstractmethod
 from functools import partial
 import pytest
-from src.json_validator_errors import ErrorCode, JSONValidatorError
-from src.json_validator import JsonValidator
+from src.json_validator.json_validator_errors import ErrorCode, JSONValidatorError
+from src.json_validator.json_validator import JsonValidator
 
 # Globals
 TEST_DATA_PATH = "test/test_data/"

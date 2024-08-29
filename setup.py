@@ -1,20 +1,28 @@
+"""
+    setup.py
+    
+    This module contains the cli setup setup for the json_validator_cli.py module.
+    Included in this testing module are:
+        - setup.py - unit tests for the json_validator_cli.py module
+
+    These tests are intended to be run with pytest.
+
+"""
 from setuptools import setup, find_packages
 
-from setuptools import setup
 
 setup(
-    name='validate_json',
-    version='0.1.0',
-    py_modules=['json_validator_cli'],  # Directly specify the standalone module
-    package_dir={'': 'src'},  # Indicate that the module is in the 'src' directory
+    name="validate_json",
+    version="1.0.0",
+    packages=find_packages(where="src"),
+    package_dir={"": "src"},
     include_package_data=True,
     install_requires=[
-        'Click',
-        # Add other dependencies here
+        "click",
     ],
     entry_points={
         'console_scripts': [
-            'validate_json=json_validator_cli:cli',  # Point to the cli function in json_validator_cli.py
+            'validate_json=json_validator.json_validator_cli:cli',
         ],
     },
 )

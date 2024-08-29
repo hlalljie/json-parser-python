@@ -1,8 +1,37 @@
-.vscode/settings.json
-.DS_Store
-__pycache__/
-.vscode/
+# .gitignore
+
+# Python build artifacts
+*.py[cod]
+*.egg
+*.egg-info
+dist
+build
+eggs
+parts
+bin
+var
+sdist
+develop-eggs
+.installed.cfg
+lib
+lib64
+__pycache__
 .pytest_cache/
+validate_json.egg-info/
+
+# Virtual environment
 venv/
-build/
-dist/
+*.venv
+env/
+*.env
+
+# IDE specific files
+.vscode/
+.idea/
+
+# Operating system files
+.DS_Store
+Thumbs.db
+
+
+

@@ -15,9 +15,8 @@
 """
 import click
 
-
-from src.json_validator import JsonValidator
-from src.json_validator_errors import JSONValidatorError, ErrorCode
+from .json_validator_errors import JSONValidatorError, ErrorCode
+from .json_validator import JsonValidator
 
 class CustomClickException(click.ClickException):
     """ A custom click exception for JSON validation errors. 
@@ -61,20 +60,25 @@ def cli(json_file):
     """
     # create a json validator object
     validator = JsonValidator()
+
+    # try to validate the json file
     try:
         # validate the json file
         validator.validate_json(json_file)
         # print success message
         click.echo(click.style("JSON is valid", fg="green"))
-        # return 0 for sucess
+        # return 0 for success
         return 0
+
     # catch JSON validation errors, print them, and return the error code for other CLIs
     except JSONValidatorError as e:
         # raise a custom error code
         raise CustomClickException(e) from e
-    # catch any unexcepted errors
+
+    # catch any unexpected errors
     except Exception as e: # pylint: disable=broad-except
-        click.echo(click.style(f"Unexpected Error, please contact creator or tool: {e}", fg="purple"), err=True)
+        click.echo(click.style(f"Unexpected Error, please contact creator or tool: {e}",
+            fg="purple"),err=True)
         return ErrorCode.UNRECOGNIZED_ERROR.value
 
 if __name__ == '__main__':

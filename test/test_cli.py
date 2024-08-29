@@ -12,8 +12,8 @@
 # Imports
 import pytest
 from click.testing import CliRunner
-from src.json_validator_cli import cli
-from src.json_validator_errors import ErrorCode
+from src.json_validator.json_validator_cli import cli
+from src.json_validator.json_validator_errors import ErrorCode
 
 class TestCli:
 

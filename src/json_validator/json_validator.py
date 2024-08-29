@@ -55,8 +55,7 @@ class JsonValidator:
             filename (str): The name of the file to be opened.
 
         Raises:
-            JSONValidatorError: An exception with error message, error code, line number,
-            and column number
+            JSONValidatorError: An exception with error message, error code, line number, and column number
         """
         # check for no file provided
         if not filename or "." not in filename:
@@ -484,8 +483,7 @@ class JsonValidator:
             filename (str): name of json file
 
         Raises:
-            JSONValidatorError: An exception with error message, error code, line number,
-            and column number
+            JSONValidatorError: An exception with error message, error code, line number, and column number
         """
         # open file with given filename
         self.open_file(filename)

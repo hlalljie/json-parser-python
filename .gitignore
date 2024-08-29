@@ -19,6 +19,9 @@ __pycache__
 .pytest_cache/
 validate_json.egg-info/
 
+# mkdocs
+site/
+
 # Virtual environment
 venv/
 *.venv

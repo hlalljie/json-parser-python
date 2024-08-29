@@ -7,11 +7,10 @@
         python json_validator_cli.py valid.json
 
     Args:
-        json_file: The path to the json file to be validated.
+        json_file (str): The path to the json file to be validated.
 
     Returns:
-        0 if the json file is valid, otherwise the error code of the first
-        found error.
+        error_code (int): 0 if the json file is valid, otherwise the error code of the first found error.
 """
 import click
 
@@ -38,7 +37,7 @@ class CustomClickException(click.ClickException):
         """ Prints the error message to the command line.
         
         Args:
-            file: The file to write the error message to
+            file (IO[Any]): The file to write the error message to
         """
         # print the error message in red
         click.echo(click.style(f"JSON is not valid - {self.error}", fg="red"))
@@ -47,16 +46,15 @@ class CustomClickException(click.ClickException):
 @click.command()
 # setup click command line argument of json file
 @click.argument("json_file")
-def cli(json_file):
+def cli(json_file: str):
     """
     Command line interface for validating a given json file.
 
     Args:
-        json_file: The path to the json file to be validated.
+        json_file (str): The path to the json file to be validated.
 
     Returns:
-        0 if the json file is valid, otherwise the error code of the first
-        found error.
+        error_code (int): 0 if the json file is valid, otherwise the error code of the first found error.
     """
     # create a json validator object
     validator = JsonValidator()

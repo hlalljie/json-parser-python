@@ -17,7 +17,7 @@ To install the package and run the tool, run the following command via the comma
 
    ```bash
    git clone https://github.com/hlalljie/json-validator-python.git
-   cd json_validator
+   cd json-validator-python
 
    ```
 

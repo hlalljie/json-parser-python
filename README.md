@@ -84,6 +84,6 @@ https://github.com/hlalljie/json-validator-python/blob/main/src/json_validator/j
 
 ## Testing
 
-1. Insure that you are configured to tess from the test folder.
+1. Insure that you are configured to test from the test folder.
 2. From the root directory run `pytest`
 3. To add tests add to the list of parameters for a given test.

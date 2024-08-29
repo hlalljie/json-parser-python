@@ -53,7 +53,7 @@ Example with valid json file:
 validate_json valid.json
 ```
 
-Would return:
+Would return `0` and print:
 
 ```
 JSON is valid

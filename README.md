@@ -17,7 +17,7 @@ To install the package and run the tool, run the following command via the comma
 
    ```bash
    git clone https://github.com/hlalljie/json-validator-python.git
-   cd json_validator
+   cd json-validator-python
 
    ```
 
@@ -26,15 +26,19 @@ To install the package and run the tool, run the following command via the comma
    python -m venv venv
    ```
 3. Activate venv
-   ```
+   ```bash
    source venv/bin/activate
    ```
 4. Insure that your python interpreter is set to the venv interpreter
-5. Build the package by running:
+5. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+7. Build the package by running:
    ```bash
    python -m build
    ```
-6. Install the program in edit mode:
+8. Install the program in edit mode:
    ```bash
    pip install -e .
    ```
@@ -80,6 +84,6 @@ https://github.com/hlalljie/json-validator-python/blob/main/src/json_validator/j
 
 ## Testing
 
-1. Insure that you are configured to tess from the test folder.
+1. Insure that you are configured to test from the test folder.
 2. From the root directory run `pytest`
 3. To add tests add to the list of parameters for a given test.
